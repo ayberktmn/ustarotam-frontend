@@ -1,0 +1,20 @@
+Usta Rotam Production Deploy Paketi
+===================================
+
+Commit          : b5fd926
+Build ID        : k2ud8_UXxS6jCqMSX0Q1-
+Build tarihi    : 2026-10-21
+Node.js         : >= 20.9 (önerilen 22 LTS)
+Paket kökü      : usta-rotam-app/
+
+Build ortamı:
+  SITE_URL=https://ustarotam.com
+  APP_VERSION=0.1.0
+  API_INTERNAL_BASE_URL=https://api.ustarotam.com/api/v1
+  NEXT_PUBLIC_API_BASE_URL=https://api.ustarotam.com/api/v1
+
+Build doğrulaması:
+  npm ci --omit=dev + npm run start ile ayrı dizinde test edildi.
+  /, /en, /usta-ara, /api/health, /giris, /hesabim -> 200
+  /usta/gecersiz-slug -> 404
+  Canonical -> https://ustarotam.com

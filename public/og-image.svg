@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <radialGradient id="warm" cx="88%" cy="0%" r="60%">
+      <stop offset="0" stop-color="#FFD9D0" stop-opacity="0.95" />
+      <stop offset="1" stop-color="#FCFCFC" stop-opacity="0" />
+    </radialGradient>
+    <radialGradient id="cool" cx="0%" cy="110%" r="45%">
+      <stop offset="0" stop-color="#DCEAF5" stop-opacity="0.65" />
+      <stop offset="1" stop-color="#FCFCFC" stop-opacity="0" />
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="#FCFCFC" />
+  <rect width="1200" height="630" fill="url(#warm)" />
+  <rect width="1200" height="630" fill="url(#cool)" />
+
+  <svg x="68" y="54" width="60" height="60" viewBox="0 0 350 350" fill="none">
+    <mask id="usta-rotam-logo-mask" maskUnits="userSpaceOnUse" x="16" y="85" width="201" height="244" style="mask-type:alpha">
+      <path d="M151.154 170.634C133.13 142.676 101.515 89.4463 100.417 90.1132C93.4242 94.3711 84.4427 94.6295 77.8957 89.7135C74.0937 86.8582 69.311 85.6251 64.5969 86.2846C59.8828 86.9441 55.6222 89.4425 52.7498 93.2315L40.2798 109.72C37.4161 113.516 36.1774 118.289 36.8354 122.993C37.4935 127.696 39.9946 131.946 43.79 134.81C50.339 139.74 52.5529 148.414 50.342 156.309C49.995 157.551 49.6694 158.8 49.3653 160.053C47.4484 168.007 41.271 174.518 33.1693 175.651C23.3437 177.026 16.4936 186.084 17.8652 195.887L20.7258 216.334C22.0974 226.138 31.1703 232.968 40.9959 231.593C49.0975 230.46 56.8246 235.025 60.8508 242.148C61.5037 243.273 62.1592 244.384 62.8176 245.48C67.0944 252.454 67.3479 261.416 62.4173 267.952C59.5536 271.747 58.3149 276.52 58.9729 281.224C59.631 285.928 62.1321 290.178 65.9275 293.042L82.4439 305.475C86.2459 308.33 91.0285 309.563 95.7426 308.904C100.457 308.244 104.717 305.746 107.59 301.957C112.534 295.419 121.228 293.204 129.137 295.392C130.376 295.741 131.628 296.07 132.89 296.378C140.86 298.286 147.381 304.446 148.512 312.53C149.884 322.334 158.957 329.164 168.782 327.789L189.275 324.922C199.1 323.547 205.95 314.49 204.579 304.686C203.448 296.602 208.028 288.889 215.166 284.853C216.297 284.22 181.108 217.097 151.154 170.634Z" fill="#D9D9D9" stroke-width="2" stroke="black"/>
+    </mask>
+    <g mask="url(#usta-rotam-logo-mask)">
+      <path d="M132.186 24.9975L294.286 2.31876L316.965 164.419C329.49 253.944 267.069 336.673 177.544 349.198C88.0181 361.723 5.28983 299.302 -7.23531 209.776C-19.7604 120.251 42.6606 37.5227 132.186 24.9975Z" fill="#FF6B36"/>
+    </g>
+    <path d="M183.289 36.842H317.763V171.776C317.763 246.298 257.557 306.71 183.289 306.71C109.021 306.71 48.8154 246.298 48.8154 171.776C48.8154 97.2541 109.021 36.842 183.289 36.842Z" fill="#FF6B36"/>
+    <path d="M209.988 200.463C243.213 201.336 270.831 175.132 271.704 141.907C271.855 136.157 271.174 130.572 269.81 125.234C268.752 121.144 263.777 120.11 260.73 123.002L231.106 151.108C229.949 152.206 228.391 152.805 226.813 152.763L205.239 152.196C201.932 152.109 199.297 149.332 199.383 146.025L199.95 124.451C199.992 122.872 200.671 121.348 201.828 120.25L231.452 92.1438C234.499 89.2526 233.691 84.2291 229.7 82.9583C224.44 81.3157 218.899 80.3427 213.149 80.1916C179.924 79.3186 152.306 105.522 151.433 138.747C151.244 145.926 152.341 152.875 154.465 159.324L84.4182 225.785C79.5195 230.433 76.6425 236.864 76.4648 243.629C76.0944 257.723 87.22 269.449 101.314 269.819C108.079 269.997 114.653 267.462 119.551 262.814L189.599 196.354C195.927 198.852 202.81 200.274 209.988 200.463ZM106.889 230.851C109.281 230.914 111.551 231.924 113.198 233.66C114.845 235.397 115.735 237.716 115.672 240.108C115.609 242.501 114.599 244.77 112.863 246.417C111.127 248.064 108.807 248.954 106.415 248.892C104.023 248.829 101.753 247.818 100.106 246.082C98.4589 244.346 97.5688 242.027 97.6317 239.634C97.6946 237.242 98.7052 234.972 100.441 233.325C102.177 231.678 104.497 230.788 106.889 230.851Z" fill="#FFFFFF"/>
+    <path d="M107.762 195.263L113.889 233.005L151.973 237.632L103.618 279.079L84.2754 262.96L66.7755 244.539L107.762 195.263Z" fill="#FF6B36"/>
+  </svg>
+
+  <text x="136" y="95" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="32" font-weight="700" fill="#000000">
+    Usta <tspan fill="#FF6B36">Rotam</tspan>
+  </text>
+  <text x="137" y="118" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" font-weight="500" letter-spacing="3.1" fill="#525252">
+    OTO SERVİS REHBERİ
+  </text>
+
+  <g transform="translate(72 178)">
+    <rect width="312" height="38" rx="19" fill="#FFF0EB"/>
+    <circle cx="21" cy="19" r="5" fill="#FF6B36"/>
+    <text x="36" y="24" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1.2" fill="#CB3706">
+      TÜRKİYE OTO SERVİS REHBERİ
+    </text>
+  </g>
+
+  <text x="72" y="315" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="68" font-weight="700" letter-spacing="-2" fill="#000000">
+    Aracınız için
+  </text>
+  <text x="72" y="390" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="68" font-weight="700" letter-spacing="-2" fill="#FF6B36">
+    güvenilir ustalar
+  </text>
+  <text x="72" y="465" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="68" font-weight="700" letter-spacing="-2" fill="#000000">
+    burada!
+  </text>
+
+  <text x="72" y="520" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="23" fill="#525252">
+    Şehir, ilçe ve uzmanlık alanına göre doğru oto servis ustasını bulun.
+  </text>
+
+  <g transform="translate(816 160)">
+    <rect width="312" height="380" rx="34" fill="#FCFCFC" stroke="#E7E7EE" stroke-width="2"/>
+    <text x="30" y="48" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="17" font-weight="700" fill="#000000">
+      Rota önizleme
+    </text>
+    <circle cx="270" cy="40" r="17" fill="#FFF0EB"/>
+    <path d="M262 46c0-5 3-8 8-8s8-3 8-8" fill="none" stroke="#FF6B36" stroke-width="2.4" stroke-linecap="round"/>
+    <circle cx="262" cy="46" r="2.4" fill="#FF6B36"/>
+    <circle cx="278" cy="30" r="2.4" fill="#FF6B36"/>
+
+    <g transform="translate(30 74)">
+      <rect width="252" height="76" rx="17" fill="#FCFCFC" stroke="#E7E7EE"/>
+      <circle cx="38" cy="38" r="18" fill="#FFF0EB"/>
+      <path d="M33 43c0-5 3-8 8-8s8-3 8-8" fill="none" stroke="#FF6B36" stroke-width="2.2" stroke-linecap="round"/>
+      <text x="68" y="33" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#000000">Motor</text>
+      <text x="68" y="52" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="11" fill="#525252">İstanbul</text>
+      <text x="218" y="40" text-anchor="end" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#CB3706">4,8</text>
+    </g>
+
+    <g transform="translate(52 164)">
+      <rect width="230" height="62" rx="15" fill="#FCFCFC" stroke="#E7E7EE"/>
+      <circle cx="31" cy="31" r="14" fill="#EEF6FB"/>
+      <path d="M31 22v18M25 26h12M25 38h12" fill="none" stroke="#2F6F9F" stroke-width="1.8" stroke-linecap="round"/>
+      <text x="56" y="29" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#000000">Oto elektrik</text>
+      <text x="56" y="45" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" fill="#525252">Kadıköy</text>
+      <text x="208" y="35" text-anchor="end" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#CB3706">4,6</text>
+    </g>
+
+    <g transform="translate(74 241)">
+      <rect width="208" height="62" rx="15" fill="#FCFCFC" stroke="#E7E7EE"/>
+      <circle cx="31" cy="31" r="14" fill="#EEF6FB"/>
+      <path d="M25 30h12M31 24v13M27 37l4 4 4-4" fill="none" stroke="#2F6F9F" stroke-width="1.8" stroke-linecap="round"/>
+      <text x="56" y="29" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="13" font-weight="700" fill="#000000">Klima</text>
+      <text x="56" y="45" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10.5" fill="#525252">Çankaya</text>
+      <text x="188" y="35" text-anchor="end" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#CB3706">4,2</text>
+    </g>
+
+    <g transform="translate(30 322)">
+      <rect width="252" height="28" rx="14" fill="#F5F5F5"/>
+      <text x="126" y="18" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="10" font-weight="600" letter-spacing="0.8" fill="#525252">
+        10 UZMANLIK · TÜRKİYE
+      </text>
+    </g>
+  </g>
+</svg>

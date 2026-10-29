@@ -1,0 +1,184 @@
+/**
+ * Usta Rotam design tokens
+ * ------------------------
+ * Renk, tipografi, gölge ve boşluk değerlerinin tek kaynağı.
+ * Marka rengini veya ölçeği değiştirmek için bu dosyayı düzenleyin.
+ */
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-manrope);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  --font-heading: var(--font-manrope);
+  --color-brand: #ff6b36;
+  --color-brand-dark: #f05b26;
+  --color-brand-deep: #cb3706;
+  --color-brand-soft: #fff0eb;
+  --color-ink: #000000;
+  --color-ink-muted: #525252;
+  --color-cream: #fcfcfc;
+  --color-peach: #eceff3;
+  --color-line: #e7e7ee;
+  --color-success: #1e9e5a;
+  --color-star: #f5a623;
+  --text-display: clamp(2.55rem, 5vw, 4rem);
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.035em;
+  --text-display--font-weight: 800;
+  --text-h1: clamp(2.25rem, 4vw, 3rem);
+  --text-h1--line-height: 1.1;
+  --text-h1--letter-spacing: -0.03em;
+  --text-h1--font-weight: 800;
+  --text-h2: clamp(1.75rem, 3vw, 2.125rem);
+  --text-h2--line-height: 1.2;
+  --text-h2--letter-spacing: -0.025em;
+  --text-h2--font-weight: 700;
+  --text-h3: 1.375rem;
+  --text-h3--line-height: 1.3;
+  --text-h3--letter-spacing: -0.02em;
+  --text-h3--font-weight: 700;
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.6;
+  --text-body: 1rem;
+  --text-body--line-height: 1.6;
+  --shadow-xs: 0 1px 2px 0 rgb(17 24 39 / 0.05);
+  --shadow-sm: 0 1px 2px 0 rgb(17 24 39 / 0.08);
+  --shadow-card: 0 1px 3px 0 rgb(17 24 39 / 0.1);
+  --shadow-search: 0 1px 3px 0 rgb(17 24 39 / 0.1);
+  --shadow-xl: 0 8px 16px -4px rgb(17 24 39 / 0.1);
+  --spacing-section: clamp(4rem, 8vw, 7rem);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+:root {
+  --background: #fcfcfc;
+  --foreground: #000000;
+  --card: #fcfcfc;
+  --card-foreground: #000000;
+  --popover: #fcfcfc;
+  --popover-foreground: #000000;
+  --primary: #ff6b36;
+  --primary-foreground: #ffffff;
+  --secondary: #eceff3;
+  --secondary-foreground: #080808;
+  --muted: #f5f5f5;
+  --muted-foreground: #525252;
+  --accent: #fff0eb;
+  --accent-foreground: #cb3706;
+  --destructive: #dc2626;
+  --border: #e7e7ee;
+  --input: #ebebeb;
+  --ring: #ff6b36;
+  --chart-1: #ff6b36;
+  --chart-2: #2f6f9f;
+  --chart-3: #1e9e5a;
+  --chart-4: #f5a623;
+  --chart-5: #8b5cf6;
+  --radius: 0.75rem;
+  --sidebar: #fcfcfc;
+  --sidebar-foreground: #000000;
+  --sidebar-primary: #ff6b36;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #fff0eb;
+  --sidebar-accent-foreground: #cb3706;
+  --sidebar-border: #e7e7ee;
+  --sidebar-ring: #ff6b36;
+}
+
+.dark {
+  --background: oklch(0.18 0.015 260);
+  --foreground: oklch(0.97 0.005 85);
+  --card: oklch(0.22 0.018 260);
+  --card-foreground: oklch(0.97 0.005 85);
+  --popover: oklch(0.22 0.018 260);
+  --popover-foreground: oklch(0.97 0.005 85);
+  --primary: #ff6b36;
+  --primary-foreground: oklch(0.2 0.02 50);
+  --secondary: oklch(0.28 0.02 260);
+  --secondary-foreground: oklch(0.97 0.005 85);
+  --muted: oklch(0.28 0.02 260);
+  --muted-foreground: oklch(0.72 0.01 80);
+  --accent: oklch(0.32 0.04 55);
+  --accent-foreground: oklch(0.95 0.04 65);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: #ff6b36;
+  --chart-1: oklch(0.72 0.16 55);
+  --chart-2: oklch(0.7 0.12 200);
+  --chart-3: oklch(0.65 0.1 150);
+  --chart-4: oklch(0.8 0.14 85);
+  --chart-5: oklch(0.65 0.12 300);
+  --sidebar: oklch(0.22 0.018 260);
+  --sidebar-foreground: oklch(0.97 0.005 85);
+  --sidebar-primary: #ff6b36;
+  --sidebar-primary-foreground: oklch(0.2 0.02 50);
+  --sidebar-accent: oklch(0.32 0.04 55);
+  --sidebar-accent-foreground: oklch(0.95 0.04 65);
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: #ff6b36;
+}
+
+/* Premium workshop participation treatments share the existing brand palette. */
+.workshop-join-card {
+  background: radial-gradient(ellipse at bottom right, color-mix(in srgb, var(--color-brand) 32%, transparent), transparent 60%), linear-gradient(115deg, var(--color-brand-soft), var(--card) 48%, var(--color-brand-soft));
+  box-shadow: 0 12px 32px -24px var(--color-brand);
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+.workshop-join-card:hover { transform: translateY(-3px); box-shadow: 0 16px 36px -24px var(--color-brand); }
+.premium-join-button {
+  position: relative; isolation: isolate; overflow: hidden;
+  color: var(--primary-foreground);
+  border: 1px solid color-mix(in srgb, var(--color-brand) 30%, white);
+  background: linear-gradient(125deg, var(--color-brand), var(--color-brand-dark) 65%, var(--color-brand));
+  box-shadow: inset 0 1px 2px color-mix(in srgb, white 60%, transparent), 0 5px 20px color-mix(in srgb, var(--color-brand) 35%, transparent);
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+.premium-join-button::before {
+  content: ''; position: absolute; z-index: -1; inset: -50%; pointer-events: none;
+  background: linear-gradient(110deg, transparent 43%, color-mix(in srgb, white 30%, transparent) 50%, transparent 57%);
+  transform: translateX(-80%); animation: workshop-shine 7s ease-in-out infinite;
+}
+.premium-join-button:hover { transform: translateY(-2px) scale(1.02); box-shadow: 0 8px 24px color-mix(in srgb, var(--color-brand) 45%, transparent); }
+@keyframes workshop-shine { 0%, 75% { transform: translateX(-80%); } 100% { transform: translateX(80%); } }
+@media (prefers-reduced-motion: reduce) {
+  .premium-join-button, .workshop-join-card { transition: none; }
+  .premium-join-button::before { animation: none; }
+  .premium-join-button:hover, .workshop-join-card:hover { transform: none; }
+}

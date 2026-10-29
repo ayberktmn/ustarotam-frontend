@@ -1,0 +1,494 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": "58e4aca6-e49e-4d77-aeda-c8006e1a857b",
+      "code": 1,
+      "name": "Adana",
+      "slug": "adana"
+    },
+    {
+      "id": "4f16212c-1a92-4758-90a0-ccb40f44f7b5",
+      "code": 2,
+      "name": "Adıyaman",
+      "slug": "adiyaman"
+    },
+    {
+      "id": "4331682e-e8f6-4fdd-ae97-ae72e7a89b20",
+      "code": 3,
+      "name": "Afyonkarahisar",
+      "slug": "afyonkarahisar"
+    },
+    {
+      "id": "71749ea6-3a1a-4f35-89db-b7647c2cc74d",
+      "code": 4,
+      "name": "Ağrı",
+      "slug": "agri"
+    },
+    {
+      "id": "9e00c451-adc1-4e8e-82ae-8ffe5dfee8d7",
+      "code": 5,
+      "name": "Amasya",
+      "slug": "amasya"
+    },
+    {
+      "id": "b4e9eeb5-06f5-46ba-908e-a340472ff072",
+      "code": 6,
+      "name": "Ankara",
+      "slug": "ankara"
+    },
+    {
+      "id": "9269778b-faf6-451c-a434-43b81c115805",
+      "code": 7,
+      "name": "Antalya",
+      "slug": "antalya"
+    },
+    {
+      "id": "675e2c5a-638e-46c2-aa70-9f8ae0d786f0",
+      "code": 8,
+      "name": "Artvin",
+      "slug": "artvin"
+    },
+    {
+      "id": "384f1c3f-cb22-4213-9f06-988a07422484",
+      "code": 9,
+      "name": "Aydın",
+      "slug": "aydin"
+    },
+    {
+      "id": "01a8c7af-c031-4077-bf70-ec851a16c5c0",
+      "code": 10,
+      "name": "Balıkesir",
+      "slug": "balikesir"
+    },
+    {
+      "id": "ac7ea292-5a01-44bd-9430-00f325278d5a",
+      "code": 11,
+      "name": "Bilecik",
+      "slug": "bilecik"
+    },
+    {
+      "id": "67648a71-0d46-4150-9691-9bd9459c7b5c",
+      "code": 12,
+      "name": "Bingöl",
+      "slug": "bingol"
+    },
+    {
+      "id": "315f6965-7129-417e-970f-8bd8d2ee6f69",
+      "code": 13,
+      "name": "Bitlis",
+      "slug": "bitlis"
+    },
+    {
+      "id": "6e943049-11cf-4f14-acf8-fa9b59cf664c",
+      "code": 14,
+      "name": "Bolu",
+      "slug": "bolu"
+    },
+    {
+      "id": "5b15ebac-fc2d-4599-b48f-50081d131e57",
+      "code": 15,
+      "name": "Burdur",
+      "slug": "burdur"
+    },
+    {
+      "id": "96c5175f-1f8a-443f-82b9-68384a279a1d",
+      "code": 16,
+      "name": "Bursa",
+      "slug": "bursa"
+    },
+    {
+      "id": "79585f85-2cf9-478a-8c44-df749a848ba6",
+      "code": 17,
+      "name": "Çanakkale",
+      "slug": "canakkale"
+    },
+    {
+      "id": "d8976628-ac87-4f53-a786-638a656f87fb",
+      "code": 18,
+      "name": "Çankırı",
+      "slug": "cankiri"
+    },
+    {
+      "id": "139e442b-825a-48f4-bff8-a3540172ee05",
+      "code": 19,
+      "name": "Çorum",
+      "slug": "corum"
+    },
+    {
+      "id": "52ef2063-7958-4631-bf1f-8f8c87536e59",
+      "code": 20,
+      "name": "Denizli",
+      "slug": "denizli"
+    },
+    {
+      "id": "4e9501ff-086d-4609-8318-a597185f3a3d",
+      "code": 21,
+      "name": "Diyarbakır",
+      "slug": "diyarbakir"
+    },
+    {
+      "id": "f534f336-d45b-402e-9c3c-c6a4b005ecbb",
+      "code": 22,
+      "name": "Edirne",
+      "slug": "edirne"
+    },
+    {
+      "id": "e9443ab3-501f-4b68-bf9f-42f3811e0662",
+      "code": 23,
+      "name": "Elazığ",
+      "slug": "elazig"
+    },
+    {
+      "id": "b237707e-06c5-4440-9809-cd8bda8eb4f4",
+      "code": 24,
+      "name": "Erzincan",
+      "slug": "erzincan"
+    },
+    {
+      "id": "9dbc0232-9d76-43d8-974a-f020f6b6c808",
+      "code": 25,
+      "name": "Erzurum",
+      "slug": "erzurum"
+    },
+    {
+      "id": "7dfe1769-a0e1-4b65-bd51-ddc7f147472b",
+      "code": 26,
+      "name": "Eskişehir",
+      "slug": "eskisehir"
+    },
+    {
+      "id": "8d887cdb-d8eb-48a1-b147-773904bb2b06",
+      "code": 27,
+      "name": "Gaziantep",
+      "slug": "gaziantep"
+    },
+    {
+      "id": "31af02bf-a769-47a9-9909-a3547b187dec",
+      "code": 28,
+      "name": "Giresun",
+      "slug": "giresun"
+    },
+    {
+      "id": "8c33af14-a077-4b4b-a8a7-7da22c6bc91e",
+      "code": 29,
+      "name": "Gümüşhane",
+      "slug": "gumushane"
+    },
+    {
+      "id": "00e0893d-9773-48e6-b535-5cae42614b17",
+      "code": 30,
+      "name": "Hakkari",
+      "slug": "hakkari"
+    },
+    {
+      "id": "ba8ed6ef-a523-404a-991c-14f2628b8245",
+      "code": 31,
+      "name": "Hatay",
+      "slug": "hatay"
+    },
+    {
+      "id": "e3eed73b-bb73-45d5-b18b-f6be16de3f41",
+      "code": 32,
+      "name": "Isparta",
+      "slug": "isparta"
+    },
+    {
+      "id": "ecf87068-c6f4-4a7c-ba95-b3a93f21e656",
+      "code": 33,
+      "name": "Mersin",
+      "slug": "mersin"
+    },
+    {
+      "id": "7451324f-a45a-4a20-9ced-4f401f0287f8",
+      "code": 34,
+      "name": "İstanbul",
+      "slug": "istanbul"
+    },
+    {
+      "id": "29cf9048-1283-4397-81c7-25f4c71d6909",
+      "code": 35,
+      "name": "İzmir",
+      "slug": "izmir"
+    },
+    {
+      "id": "45bd81b0-0729-46cd-84ac-9aa66f1eb9ad",
+      "code": 36,
+      "name": "Kars",
+      "slug": "kars"
+    },
+    {
+      "id": "0377bd52-b06a-4380-b379-7e5a9409c6d1",
+      "code": 37,
+      "name": "Kastamonu",
+      "slug": "kastamonu"
+    },
+    {
+      "id": "a7e6808c-7926-4526-b748-2c0deede3a5c",
+      "code": 38,
+      "name": "Kayseri",
+      "slug": "kayseri"
+    },
+    {
+      "id": "ccad5f06-5b95-4b61-927c-9fc68462fa8d",
+      "code": 39,
+      "name": "Kırklareli",
+      "slug": "kirklareli"
+    },
+    {
+      "id": "abf31146-b121-4259-bbe1-db9a109544d5",
+      "code": 40,
+      "name": "Kırşehir",
+      "slug": "kirsehir"
+    },
+    {
+      "id": "f3f49364-3607-473c-b522-78011116f6da",
+      "code": 41,
+      "name": "Kocaeli",
+      "slug": "kocaeli"
+    },
+    {
+      "id": "638cd4a5-6c36-48f3-a226-ed48acacd645",
+      "code": 42,
+      "name": "Konya",
+      "slug": "konya"
+    },
+    {
+      "id": "8b0ce66b-9e2c-4c77-aaa7-70d6bb5568f6",
+      "code": 43,
+      "name": "Kütahya",
+      "slug": "kutahya"
+    },
+    {
+      "id": "77d91d06-0fc1-4021-a0a9-e0bfcc43beb9",
+      "code": 44,
+      "name": "Malatya",
+      "slug": "malatya"
+    },
+    {
+      "id": "d8140ec4-f870-41b9-b172-d051cea88c08",
+      "code": 45,
+      "name": "Manisa",
+      "slug": "manisa"
+    },
+    {
+      "id": "fedba6d0-b510-4549-9d1a-be8bd9a67f91",
+      "code": 46,
+      "name": "Kahramanmaraş",
+      "slug": "kahramanmaras"
+    },
+    {
+      "id": "78b40384-6fc0-4a7a-bad6-c7b0ec6363ff",
+      "code": 47,
+      "name": "Mardin",
+      "slug": "mardin"
+    },
+    {
+      "id": "5b85188d-7acc-4bfa-9244-e57deae2a361",
+      "code": 48,
+      "name": "Muğla",
+      "slug": "mugla"
+    },
+    {
+      "id": "a2eb0911-143c-4bc7-bf3f-7fe54a7d1b5b",
+      "code": 49,
+      "name": "Muş",
+      "slug": "mus"
+    },
+    {
+      "id": "09192c17-78c4-42d4-a2eb-66a35ade1b9f",
+      "code": 50,
+      "name": "Nevşehir",
+      "slug": "nevsehir"
+    },
+    {
+      "id": "d78280f1-e6bb-4127-9d73-9dabac85c1b3",
+      "code": 51,
+      "name": "Niğde",
+      "slug": "nigde"
+    },
+    {
+      "id": "04cb6249-5431-453d-8cad-8cf775be8417",
+      "code": 52,
+      "name": "Ordu",
+      "slug": "ordu"
+    },
+    {
+      "id": "56af10e8-d455-4729-83c5-37ea8c0e5a76",
+      "code": 53,
+      "name": "Rize",
+      "slug": "rize"
+    },
+    {
+      "id": "e18943da-01ec-4a87-aa6e-51af38c75ed0",
+      "code": 54,
+      "name": "Sakarya",
+      "slug": "sakarya"
+    },
+    {
+      "id": "e5443e68-4015-446f-976c-11fe1f01ef68",
+      "code": 55,
+      "name": "Samsun",
+      "slug": "samsun"
+    },
+    {
+      "id": "a4c93256-c1b5-479a-b91a-e277b8edc4d4",
+      "code": 56,
+      "name": "Siirt",
+      "slug": "siirt"
+    },
+    {
+      "id": "e553c762-174b-4808-9196-1af320f74c8f",
+      "code": 57,
+      "name": "Sinop",
+      "slug": "sinop"
+    },
+    {
+      "id": "f112c625-475a-4bbd-b360-c650566f89cc",
+      "code": 58,
+      "name": "Sivas",
+      "slug": "sivas"
+    },
+    {
+      "id": "c913b39c-400f-4437-a081-b31ded712ec9",
+      "code": 59,
+      "name": "Tekirdağ",
+      "slug": "tekirdag"
+    },
+    {
+      "id": "7fd97622-7af1-4c78-b6a1-ed3699851e61",
+      "code": 60,
+      "name": "Tokat",
+      "slug": "tokat"
+    },
+    {
+      "id": "bda8042e-6475-4808-8f78-f5691084d56f",
+      "code": 61,
+      "name": "Trabzon",
+      "slug": "trabzon"
+    },
+    {
+      "id": "6b217865-1764-4b58-a13e-aa0e478dbbb6",
+      "code": 62,
+      "name": "Tunceli",
+      "slug": "tunceli"
+    },
+    {
+      "id": "57b5fce3-620c-40b7-a275-88876c623088",
+      "code": 63,
+      "name": "Şanlıurfa",
+      "slug": "sanliurfa"
+    },
+    {
+      "id": "bd3e8e1f-eb61-47ac-9549-3e6c5fe80be9",
+      "code": 64,
+      "name": "Uşak",
+      "slug": "usak"
+    },
+    {
+      "id": "b41d5420-fc30-49ed-8828-bcd4d9bb7480",
+      "code": 65,
+      "name": "Van",
+      "slug": "van"
+    },
+    {
+      "id": "e403ce4d-8edd-438a-848b-092f944a001d",
+      "code": 66,
+      "name": "Yozgat",
+      "slug": "yozgat"
+    },
+    {
+      "id": "a4b82337-1154-4637-bf18-0c1fd85aa55e",
+      "code": 67,
+      "name": "Zonguldak",
+      "slug": "zonguldak"
+    },
+    {
+      "id": "97368675-9e1c-4963-b1a5-df7a3dcaaa0f",
+      "code": 68,
+      "name": "Aksaray",
+      "slug": "aksaray"
+    },
+    {
+      "id": "e42e4b7f-cf45-4357-a576-f451f9d52b13",
+      "code": 69,
+      "name": "Bayburt",
+      "slug": "bayburt"
+    },
+    {
+      "id": "54e6bc87-cb79-4e32-89a6-856799db00b5",
+      "code": 70,
+      "name": "Karaman",
+      "slug": "karaman"
+    },
+    {
+      "id": "b1234acd-b606-4dec-9527-711e28925e46",
+      "code": 71,
+      "name": "Kırıkkale",
+      "slug": "kirikkale"
+    },
+    {
+      "id": "86870a51-de3a-4364-bb74-558fa877b935",
+      "code": 72,
+      "name": "Batman",
+      "slug": "batman"
+    },
+    {
+      "id": "83e76de8-e7c4-4ef3-ba07-d2a51dbef7a4",
+      "code": 73,
+      "name": "Şırnak",
+      "slug": "sirnak"
+    },
+    {
+      "id": "65f5abc1-cbb7-4468-aa02-2d6df072a3b6",
+      "code": 74,
+      "name": "Bartın",
+      "slug": "bartin"
+    },
+    {
+      "id": "9cebf2bf-6f53-4586-af3d-1c23b3cc893d",
+      "code": 75,
+      "name": "Ardahan",
+      "slug": "ardahan"
+    },
+    {
+      "id": "0bdb033a-fe16-4749-b0e4-55396702cb1f",
+      "code": 76,
+      "name": "Iğdır",
+      "slug": "igdir"
+    },
+    {
+      "id": "086a2465-1e3e-4712-96aa-a820a8db07d2",
+      "code": 77,
+      "name": "Yalova",
+      "slug": "yalova"
+    },
+    {
+      "id": "24814f90-e3a7-47a8-a66d-d0c0bb6009d7",
+      "code": 78,
+      "name": "Karabük",
+      "slug": "karabuk"
+    },
+    {
+      "id": "3c9d6f64-9f7b-4a45-9c44-9a732d9851ca",
+      "code": 79,
+      "name": "Kilis",
+      "slug": "kilis"
+    },
+    {
+      "id": "576ff750-7ee8-4838-83ca-7b9a665c97d8",
+      "code": 80,
+      "name": "Osmaniye",
+      "slug": "osmaniye"
+    },
+    {
+      "id": "3a114e03-0c5d-4c6a-9846-f203997bdc74",
+      "code": 81,
+      "name": "Düzce",
+      "slug": "duzce"
+    }
+  ],
+  "meta": {
+    "count": 81
+  }
+}

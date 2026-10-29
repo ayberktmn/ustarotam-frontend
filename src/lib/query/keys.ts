@@ -1,0 +1,39 @@
+export const queryKeys = {
+  auth: {
+    me: ["auth", "me"] as const,
+  },
+  catalog: {
+    provinces: ["catalog", "provinces"] as const,
+    districts: (provinceId: string) =>
+      ["catalog", "districts", provinceId] as const,
+    industrialSites: (districtId: string) =>
+      ["catalog", "industrial-sites", districtId] as const,
+    vehicleTypes: ["catalog", "vehicle-types"] as const,
+    vehicleBrands: ["catalog", "vehicle-brands"] as const,
+    vehicleModels: (brandId?: string, typeId?: string) =>
+      ["catalog", "vehicle-models", brandId ?? "all", typeId ?? "all"] as const,
+    specialties: ["catalog", "specialties"] as const,
+  },
+  workshops: {
+    all: ["workshops"] as const,
+    list: (query: Record<string, unknown>) =>
+      ["workshops", "list", query] as const,
+    detail: (id: string) => ["workshops", "detail", id] as const,
+    reviews: (id: string) => ["workshops", "detail", id, "reviews"] as const,
+  },
+  reviews: {
+    all: ["reviews"] as const,
+    mine: ["reviews", "mine"] as const,
+  },
+  workshopPanel: {
+    all: ["workshop-panel"] as const,
+    requests: ["workshop-panel", "requests"] as const,
+    offers: ["workshop-panel", "offers"] as const,
+    conversations: ["workshop-panel", "conversations"] as const,
+    conversation: (id: string) =>
+      ["workshop-panel", "conversation", id] as const,
+    notifications: ["workshop-panel", "notifications"] as const,
+    reviews: ["workshop-panel", "reviews"] as const,
+    profile: ["workshop-panel", "profile"] as const,
+  },
+};
