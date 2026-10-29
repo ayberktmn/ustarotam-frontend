@@ -9,10 +9,12 @@ export const queryKeys = {
     industrialSites: (districtId: string) =>
       ["catalog", "industrial-sites", districtId] as const,
     vehicleTypes: ["catalog", "vehicle-types"] as const,
+    vehicleTypeCatalog: ["catalog", "vehicle-type-catalog"] as const,
     vehicleBrands: ["catalog", "vehicle-brands"] as const,
     vehicleModels: (brandId?: string, typeId?: string) =>
       ["catalog", "vehicle-models", brandId ?? "all", typeId ?? "all"] as const,
     specialties: ["catalog", "specialties"] as const,
+    specialtyCatalog: ["catalog", "specialty-catalog"] as const,
   },
   workshops: {
     all: ["workshops"] as const,
@@ -24,6 +26,14 @@ export const queryKeys = {
   reviews: {
     all: ["reviews"] as const,
     mine: ["reviews", "mine"] as const,
+  },
+  workRequests: {
+    all: ["work-requests"] as const,
+    lists: ["work-requests", "list"] as const,
+    list: (query: { status?: string; page: number; limit: number }) =>
+      ["work-requests", "list", query] as const,
+    details: ["work-requests", "detail"] as const,
+    detail: (id: string) => ["work-requests", "detail", id] as const,
   },
   workshopPanel: {
     all: ["workshop-panel"] as const,

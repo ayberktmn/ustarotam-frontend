@@ -2,6 +2,7 @@
 
 import {
   BriefcaseBusiness,
+  ClipboardList,
   Heart,
   LayoutDashboard,
   MessageSquareText,
@@ -17,6 +18,7 @@ import { canAccessWorkshopPanel } from "@/lib/workshop-panel-access";
 const baseItems = [
   { href: "/hesabim", key: "overview", icon: LayoutDashboard },
   { href: "/hesabim/profil", key: "profile", icon: UserRound },
+  { href: "/hesabim/talepler", key: "requests", icon: ClipboardList },
 ] as const;
 
 const panelItem = {

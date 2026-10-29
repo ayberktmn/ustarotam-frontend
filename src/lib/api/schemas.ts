@@ -159,6 +159,7 @@ export const apiWorkshopSchema: z.ZodType<Workshop> = z
     vehicleTypes: z.array(workshopVehicleTypeRelationSchema).optional(),
     images: z.array(imageSchema).optional(),
     coverImage: z.string().optional(),
+    logoUrl: z.string().url().nullable().optional(),
   })
   .passthrough()
   .transform((value) => {
@@ -202,6 +203,7 @@ export const apiWorkshopSchema: z.ZodType<Workshop> = z
       ratingBreakdown: null,
       reviews: [],
       coverImage,
+      logoUrl: value.logoUrl ?? null,
     };
   });
 

@@ -138,6 +138,18 @@ it("uploads the original binary with the supplied ID and document type", async (
   expect(calls[0].init.body).not.toBeInstanceOf(FormData);
 });
 
+it("downloads an application document with the authenticated API client", async () => {
+  const bytes = new Uint8Array([37, 80, 68, 70]);
+  const {fetchMock, calls} = createFetchMock(() => new Response(bytes, {status: 200, headers: {"content-type": PDF_MIME}}));
+  vi.stubGlobal("fetch", fetchMock);
+  const {setAccessToken} = await import("../token-store"); setAccessToken("token");
+  const {workshopApplicationService} = await import("../endpoints/workshop-applications");
+  const file = await workshopApplicationService.downloadDocument("returned-application-id", "document-id");
+  expect(calls[0].url).toBe("/api/local/workshop-applications/returned-application-id/documents/document-id");
+  expect(new Headers(calls[0].init.headers).get("authorization")).toBe("Bearer token");
+  expect(file.type).toBe(PDF_MIME);
+});
+
 it("rejects unsupported documents and path traversal before making a request", async () => {
   const mock = vi.fn(); vi.stubGlobal("fetch", mock);
   const {workshopApplicationService} = await import("../endpoints/workshop-applications");

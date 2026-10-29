@@ -102,6 +102,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.removeQueries({ queryKey: queryKeys.workshops.all });
       queryClient.removeQueries({ queryKey: queryKeys.reviews.all });
       queryClient.removeQueries({ queryKey: queryKeys.workshopPanel.all });
+      queryClient.removeQueries({ queryKey: queryKeys.workRequests.all });
     },
   });
 
@@ -120,6 +121,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.removeQueries({ queryKey: queryKeys.workshops.all });
       queryClient.removeQueries({ queryKey: queryKeys.reviews.all });
       queryClient.removeQueries({ queryKey: queryKeys.workshopPanel.all });
+      queryClient.removeQueries({ queryKey: queryKeys.workRequests.all });
     };
     function handleSessionExpired() {
       if (isSignedOut()) return;
@@ -127,6 +129,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.setQueryData(queryKeys.auth.me, null);
       queryClient.removeQueries({ queryKey: queryKeys.reviews.all });
       queryClient.removeQueries({ queryKey: queryKeys.workshopPanel.all });
+      queryClient.removeQueries({ queryKey: queryKeys.workRequests.all });
       toast.info(t("sessionExpired"), { id: "session-expired" });
     }
 

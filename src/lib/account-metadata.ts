@@ -7,7 +7,9 @@ type AccountHref =
   | "/hesabim"
   | "/hesabim/profil"
   | "/hesabim/favoriler"
-  | "/hesabim/yorumlar";
+  | "/hesabim/yorumlar"
+  | "/hesabim/talepler"
+  | "/hesabim/talepler/yeni";
 
 interface AccountMetadataInput {
   locale: Locale;

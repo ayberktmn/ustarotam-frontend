@@ -128,6 +128,11 @@ export const workshopApplicationService = {
     const id = routeId.parse(applicationId);
     return browserRequest({path: `/workshop-applications/${id}/documents`, schema: z.array(documentSchema), auth: "required", retries: 0});
   },
+  downloadDocument(applicationId: string, documentId: string): Promise<Blob> {
+    const application = routeId.parse(applicationId);
+    const document = routeId.parse(documentId);
+    return browserRequest({path: `/workshop-applications/${application}/documents/${document}`, schema: z.any(), responseMode: "binary", auth: "required", retries: 0});
+  },
   uploadDocument(applicationId: string, type: ApplicationDocumentType, file: File): Promise<ApplicationDocument> {
     const id = routeId.parse(applicationId);
     z.enum(documentTypes).parse(type);

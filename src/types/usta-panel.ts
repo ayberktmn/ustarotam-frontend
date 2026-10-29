@@ -194,6 +194,7 @@ export interface WorkshopPanelProfile {
   status: PanelProfileStatus;
   verification: PanelVerificationStatus;
   specialties: LocalizedText[];
+  specialtyIds: string[];
   serviceAreas: WorkshopPanelServiceArea[];
   rating: number;
   reviewCount: number;
@@ -203,4 +204,5 @@ export interface UpdateWorkshopPanelProfileInput {
   name: string;
   phone: string;
   about: LocalizedText;
+  specialtyIds?: string[];
 }

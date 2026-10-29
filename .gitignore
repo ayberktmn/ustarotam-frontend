@@ -64,3 +64,5 @@ coverage/
 !.env.sample
 *.pem
 *.key
+
+/backend-api-reference/

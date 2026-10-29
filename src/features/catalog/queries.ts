@@ -48,6 +48,15 @@ export function useVehicleTypes() {
   });
 }
 
+export function useVehicleTypeCatalog() {
+  return useQuery({
+    queryKey: queryKeys.catalog.vehicleTypeCatalog,
+    queryFn: () => catalogService.getVehicleTypeCatalog(),
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
+  });
+}
+
 export function useVehicleBrands() {
   return useQuery({
     queryKey: queryKeys.catalog.vehicleBrands,
@@ -71,6 +80,15 @@ export function useSpecialties() {
   return useQuery({
     queryKey: queryKeys.catalog.specialties,
     queryFn: () => catalogService.getSpecialties(),
+    staleTime: CATALOG_STALE_TIME,
+    gcTime: CATALOG_GC_TIME,
+  });
+}
+
+export function useSpecialtyCatalog() {
+  return useQuery({
+    queryKey: queryKeys.catalog.specialtyCatalog,
+    queryFn: () => catalogService.getSpecialtyCatalog(),
     staleTime: CATALOG_STALE_TIME,
     gcTime: CATALOG_GC_TIME,
   });

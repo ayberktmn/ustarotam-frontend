@@ -88,6 +88,7 @@ export interface Workshop {
   reviewCount: number;
   address: string;
   phone: string;
+  logoUrl?: string | null;
   description: LocalizedText;
   verificationStatus: VerificationStatus;
   ratingBreakdown: WorkshopRatingBreakdown | null;

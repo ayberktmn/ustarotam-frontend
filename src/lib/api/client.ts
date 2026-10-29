@@ -32,7 +32,7 @@ type HttpMethod = "GET" | "POST" | "PATCH" | "PUT" | "DELETE";
 
 export type AuthMode = "none" | "optional" | "required";
 
-type ResponseMode = "envelope" | "raw";
+type ResponseMode = "envelope" | "raw" | "binary";
 
 export interface NextFetchOptions {
   revalidate?: number | false;
@@ -246,6 +246,10 @@ async function performRequest<T>({
 
     if (!response.ok) {
       throw await parseFailureResponse(response, requestId);
+    }
+
+    if (options.responseMode === "binary") {
+      return await response.blob() as T;
     }
 
     const json: unknown = await readJsonResponse(response, requestId);

@@ -7,8 +7,13 @@ const COOKIE_PATH = "/api/local/auth";
 const MAX_BODY_BYTES = 16_384;
 const MAX_COOKIE_AGE = 90 * 86_400;
 const applicationId = "[a-zA-Z0-9_-]{1,128}";
+const workRequestId = "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}";
 const documentUploadPath = new RegExp(`^workshop-applications/${applicationId}/documents/(${documentTypes.join("|")})$`);
 const applicationDocumentsPath = new RegExp(`^workshop-applications/${applicationId}/documents$`);
+const applicationDocumentReadPath = new RegExp(`^workshop-applications/${applicationId}/documents/${applicationId}$`);
+const workRequestPath = new RegExp(`^work-requests(?:/mine|/${workRequestId})?$`);
+const workRequestCancelPath = new RegExp(`^work-requests/${workRequestId}/cancel$`);
+const workRequestDetailPath = new RegExp(`^work-requests/${workRequestId}$`);
 const documentMimeTypes = new Set([PDF_MIME, DOCX_MIME]);
 const protectedListPath = /^(reviews\/mine|work-offers\/(matching|mine)|conversations|notifications)$/;
 
@@ -42,12 +47,12 @@ function failure(status: number, code: string): Response {
 }
 
 function allowedPath(path: string, method: string): boolean {
-  if (method === "POST" && (path === "workshop-applications" || path === "workshop-applications/drafts" || /^workshop-applications\/[a-zA-Z0-9_-]{1,128}\/submit$/.test(path) || documentUploadPath.test(path))) return true;
-  if (method === "GET" && (path === "workshop-applications/mine" || applicationDocumentsPath.test(path))) return true;
-  if (method === "PATCH") return path === "auth/me" || /^workshops\/[a-zA-Z0-9-]+$/.test(path) || /^workshop-applications\/[a-zA-Z0-9_-]{1,128}$/.test(path);
+  if (method === "POST" && (path === "work-requests" || workRequestCancelPath.test(path) || path === "workshop-applications" || path === "workshop-applications/drafts" || /^workshop-applications\/[a-zA-Z0-9_-]{1,128}\/submit$/.test(path) || documentUploadPath.test(path))) return true;
+  if (method === "GET" && (path === "workshop-applications/mine" || applicationDocumentsPath.test(path) || applicationDocumentReadPath.test(path))) return true;
+  if (method === "PATCH") return path === "auth/me" || workRequestDetailPath.test(path) || /^workshops\/[a-zA-Z0-9-]+$/.test(path) || /^workshop-applications\/[a-zA-Z0-9_-]{1,128}$/.test(path);
   if (method === "POST") return /^auth\/(login|register|refresh|logout|email-verification\/(resend|confirm)|password-reset\/(request|confirm))$/.test(path);
   if (method !== "GET") return false;
-  return path === "health" || path === "auth/me" || /^(locations\/provinces|specialties|vehicles\/(types|brands|models)|workshops)$/.test(path) ||
+  return path === "health" || path === "auth/me" || workRequestPath.test(path) || /^(locations\/provinces|specialties|vehicles\/(types|brands|models)|workshops)$/.test(path) ||
     protectedListPath.test(path) ||
     /^workshops\/mine(?:\/profile|\/reviews)?$/.test(path) ||
     /^locations\/(provinces\/[a-zA-Z0-9-]+\/districts|districts\/[a-zA-Z0-9-]+\/industrial-sites)$/.test(path) ||
@@ -170,7 +175,7 @@ export async function localGateway(request: Request, segments: string[]): Promis
     headers.set("Authorization", protectedListAuthorization);
   }
   const authorization = request.headers.get("authorization");
-  if ((path === "auth/me" || path === "workshop-applications" || path.startsWith("workshop-applications/") || path.startsWith("workshops/mine") || /^workshops\/[a-zA-Z0-9-]+$/.test(path)) && authorization?.match(/^Bearer [A-Za-z0-9_.-]+$/)) headers.set("Authorization", authorization);
+  if ((workRequestPath.test(path) || workRequestCancelPath.test(path) || path === "auth/me" || path === "workshop-applications" || path.startsWith("workshop-applications/") || path.startsWith("workshops/mine") || /^workshops\/[a-zA-Z0-9-]+$/.test(path)) && authorization?.match(/^Bearer [A-Za-z0-9_.-]+$/)) headers.set("Authorization", authorization);
   // Construct path from validated segments, never from a caller-supplied URL.
   const url = `${target.origin}/api/v1/${path}${incoming.search}`;
   try {
@@ -184,7 +189,13 @@ export async function localGateway(request: Request, segments: string[]): Promis
       const value = upstream.headers.get(name);
       if (value) responseHeaders.set(name, value);
     }
-    if (upstream.headers.get("content-type")?.includes("application/json")) responseHeaders.set("Content-Type", "application/json");
+    const isDocumentRead = applicationDocumentReadPath.test(path);
+    const contentType = upstream.headers.get("content-type");
+    if (contentType?.includes("application/json")) responseHeaders.set("Content-Type", "application/json");
+    else if (isDocumentRead && contentType && ["application/pdf", DOCX_MIME].includes(contentType)) {
+      responseHeaders.set("Content-Type", contentType);
+      responseHeaders.set("Content-Disposition", "attachment");
+    }
     else if (upstream.status !== 204) return failure(502, "GATEWAY_INVALID_RESPONSE");
     // Error responses are authoritative and must not be replaced by a cookie
     // parsing failure. Auth cookies are only meaningful on successful flows.

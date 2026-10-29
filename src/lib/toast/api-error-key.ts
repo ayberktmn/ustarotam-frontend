@@ -53,6 +53,11 @@ const codeMap: Record<string, ApiErrorMessageKey> = {
   VEHICLE_BRAND_NOT_FOUND: "notFound",
   VEHICLE_TYPE_NOT_FOUND: "notFound",
   INVALID_LOCATION_RELATION: "validation",
+  INVALID_REQUEST_RELATION: "validation",
+  INVALID_REQUEST_TRANSITION: "conflict",
+  WORK_REQUEST_NOT_FOUND: "notFound",
+  EMAIL_VERIFICATION_REQUIRED: "emailNotVerified",
+  ACCOUNT_INACTIVE: "unauthorized",
   INVALID_JSON: "validation",
 };
 

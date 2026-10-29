@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Loader2, Save, X } from "lucide-react";
+import { Check, Loader2, Save, Search, X } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 
@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useUpdatePanelProfile } from "@/features/usta-panel/queries";
+import { useSpecialtyCatalog } from "@/features/catalog/queries";
 import { panelText } from "@/features/usta-panel/text";
 import type { Locale, LocalizedText } from "@/types/locale";
 import type { WorkshopPanelProfile } from "@/types/usta-panel";
@@ -24,7 +25,7 @@ const profileFormSchema = z.object({
   about: z.string().trim().min(20).max(1000),
 });
 
-type FieldErrors = Partial<Record<"name" | "phone" | "about", string>>;
+type FieldErrors = Partial<Record<"name" | "phone" | "about" | "specialties", string>>;
 
 interface ProfileFormProps {
   profile: WorkshopPanelProfile;
@@ -35,9 +36,12 @@ function ProfileForm({ profile, onDone }: ProfileFormProps) {
   const t = useTranslations("workshopPanel");
   const locale = useLocale() as Locale;
   const updateProfile = useUpdatePanelProfile();
+  const specialties = useSpecialtyCatalog();
   const [name, setName] = useState(profile.name);
   const [phone, setPhone] = useState(profile.phone);
   const [about, setAbout] = useState(panelText(profile.about, locale));
+  const [specialtySearch, setSpecialtySearch] = useState("");
+  const [specialtyIds, setSpecialtyIds] = useState(profile.specialtyIds);
   const [errors, setErrors] = useState<FieldErrors>({});
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -67,6 +71,11 @@ function ProfileForm({ profile, onDone }: ProfileFormProps) {
       return;
     }
 
+    if (specialtyIds.length === 0) {
+      setErrors({ specialties: t("profile.errors.specialties") });
+      return;
+    }
+
     const nextAbout: LocalizedText = {
       ...profile.about,
       [locale]: parsed.data.about,
@@ -77,6 +86,7 @@ function ProfileForm({ profile, onDone }: ProfileFormProps) {
         name: parsed.data.name,
         phone: parsed.data.phone,
         about: nextAbout,
+        specialtyIds,
       });
       toast.success(t("profile.saved"));
       setErrors({});
@@ -161,6 +171,37 @@ function ProfileForm({ profile, onDone }: ProfileFormProps) {
           </p>
         )}
       </div>
+
+      <fieldset>
+        <legend className="text-sm font-semibold text-ink">{t("profile.specialties")}</legend>
+        <p className="mt-1 text-xs text-muted-foreground">{t("profile.specialtiesHint")}</p>
+        <div className="relative mt-3">
+          <Search aria-hidden="true" className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={specialtySearch}
+            onChange={(event) => setSpecialtySearch(event.target.value)}
+            placeholder={t("profile.specialtiesSearch")}
+            className="pl-9"
+          />
+        </div>
+        {specialties.isError ? <p className="mt-2 text-xs font-semibold text-destructive">{t("profile.specialtiesLoadError")}</p> : null}
+        <div className="mt-3 grid max-h-56 gap-2 overflow-y-auto rounded-xl border border-line bg-card p-2 sm:grid-cols-2">
+          {(specialties.data ?? []).filter((item) => item.name.toLocaleLowerCase(locale === "tr" ? "tr-TR" : "en-US").includes(specialtySearch.trim().toLocaleLowerCase(locale === "tr" ? "tr-TR" : "en-US"))).map((item) => {
+            const selected = specialtyIds.includes(item.id);
+            return <label key={item.id} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-3 text-sm hover:bg-brand-soft">
+              <input type="checkbox" checked={selected} onChange={() => {
+                setSpecialtyIds((current) => selected ? current.filter((id) => id !== item.id) : [...current, item.id]);
+                setErrors((current) => ({ ...current, specialties: undefined }));
+              }} className="sr-only" />
+              <span aria-hidden="true" className={`flex size-5 items-center justify-center rounded border ${selected ? "border-brand bg-brand text-white" : "border-line bg-card"}`}>
+                {selected ? <Check className="size-3.5" /> : null}
+              </span>
+              {item.name}
+            </label>;
+          })}
+        </div>
+        {errors.specialties ? <p className="mt-2 text-xs font-semibold text-destructive">{errors.specialties}</p> : null}
+      </fieldset>
 
       <div className="flex flex-wrap gap-2">
         <Button type="submit" size="sm" disabled={updateProfile.isPending}>

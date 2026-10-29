@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { ChevronRight, MapPin } from "lucide-react";
 
 import { VerificationBadge } from "@/features/workshops/verification-badge";
+import { WorkshopIdentity } from "@/components/workshops/workshop-identity";
 import { WorkshopProfileRating } from "@/features/workshops/workshop-profile-rating";
 import { FavoriteButton } from "@/features/favorites/favorite-button";
 import { Badge } from "@/components/ui/badge";
@@ -80,6 +81,7 @@ async function WorkshopProfileHero({
 
           <div className="mt-6 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
+              <WorkshopIdentity name={workshop.name} logoUrl={workshop.logoUrl} className="mb-3 size-16 text-xl" />
               <div className="flex flex-wrap items-center gap-2">
                 <VerificationBadge status={workshop.verificationStatus} />
                 <Badge variant="secondary" className="font-semibold">

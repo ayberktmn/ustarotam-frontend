@@ -357,6 +357,7 @@ export function createMockWorkshopPanelRepository(): WorkshopPanelRepository {
         name: input.name,
         phone: input.phone,
         about: input.about,
+        ...(input.specialtyIds && { specialtyIds: input.specialtyIds }),
       };
 
       return respond(profile);

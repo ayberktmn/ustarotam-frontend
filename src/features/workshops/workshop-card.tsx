@@ -5,6 +5,7 @@ import { Car, MapPin, Star } from "lucide-react";
 import { FavoriteButton } from "@/features/favorites/favorite-button";
 import { VerificationBadge } from "@/features/workshops/verification-badge";
 import { Button } from "@/components/ui/button";
+import { WorkshopIdentity } from "@/components/workshops/workshop-identity";
 import { Link } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { formatCount, formatRating } from "@/lib/format";
@@ -54,6 +55,7 @@ async function WorkshopCard({
         <div className={compact ? "absolute top-2 left-2" : "absolute top-3 left-3"}>
           <VerificationBadge status={workshop.verificationStatus} />
         </div>
+        <WorkshopIdentity name={workshop.name} logoUrl={workshop.logoUrl} className="absolute right-3 bottom-3 size-11 border-2 border-card shadow-card" />
 
         <FavoriteButton
           workshopId={workshop.id}

@@ -22,6 +22,21 @@ it.each(["application/pdf", "application/vnd.openxmlformats-officedocument.wordp
   expect(init.headers.get("cookie")).toBeNull();
 });
 
+it("forwards an owned application document read as an attachment", async () => {
+  const path = "workshop-applications/returned-id/documents/document-id";
+  const fetchMock = vi.fn().mockResolvedValue(new Response(new Uint8Array([37, 80, 68, 70]), {
+    status: 200,
+    headers: { "content-type": "application/pdf" },
+  }));
+  vi.stubGlobal("fetch", fetchMock);
+  const response = await localGateway(request(path, "GET", {authorization: "Bearer token"}), path.split("/"));
+  expect(response.status).toBe(200);
+  expect(fetchMock.mock.calls[0][0]).toBe(`${upstream}/${path}`);
+  expect(fetchMock.mock.calls[0][1].headers.get("authorization")).toBe("Bearer token");
+  expect(response.headers.get("content-type")).toBe("application/pdf");
+  expect(response.headers.get("content-disposition")).toBe("attachment");
+});
+
 it.each([[10 * 1024 * 1024 + 1, "application/pdf", 413], [3, "multipart/form-data", 415], [0, "application/pdf", 400]] as const)("rejects invalid binary payload of %s bytes (%s)", async (size, mime, status) => {
   const fetchMock = vi.fn(); vi.stubGlobal("fetch", fetchMock);
   const path = "workshop-applications/returned-id/documents/WORKPLACE_LICENSE";

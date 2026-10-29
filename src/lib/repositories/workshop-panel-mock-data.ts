@@ -37,6 +37,7 @@ export const panelProfileSeed: WorkshopPanelProfile = {
     { tr: "Periyodik bakım", en: "Periodic maintenance" },
     { tr: "Oto elektrik", en: "Auto electrics" },
   ],
+  specialtyIds: [],
   serviceAreas: [
     { city: "Manisa", district: "Şehzadeler" },
     { city: "Manisa", district: "Yunusemre" },

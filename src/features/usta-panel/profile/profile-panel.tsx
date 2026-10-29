@@ -5,7 +5,6 @@ import { useLocale, useTranslations } from "next-intl";
 import {
   BadgeCheck,
   Building2,
-  ImagePlus,
   Mail,
   MapPin,
   Phone,
@@ -22,6 +21,9 @@ import {
 } from "@/components/ui/card";
 import { ErrorState } from "@/components/ui/error-state";
 import { ProfileForm } from "@/features/usta-panel/profile/profile-form";
+import { ServiceAreasEditor } from "@/features/usta-panel/profile/service-areas-editor";
+import { BusinessLogoManager } from "@/features/usta-panel/profile/business-logo-manager";
+import { WorkshopDocumentsManager } from "@/features/usta-panel/profile/workshop-documents-manager";
 import { usePanelProfile } from "@/features/usta-panel/queries";
 import { panelText } from "@/features/usta-panel/text";
 import { formatRating } from "@/lib/format";
@@ -32,6 +34,7 @@ function ProfilePanel() {
   const locale = useLocale() as Locale;
   const profile = usePanelProfile();
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingServiceAreas, setIsEditingServiceAreas] = useState(false);
 
   if (profile.isPending) {
     return (
@@ -185,8 +188,11 @@ function ProfilePanel() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between gap-3">
             <CardTitle>{t("profile.specialties")}</CardTitle>
+            <Button type="button" variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
+              {t("profile.editSpecialties")}
+            </Button>
           </CardHeader>
           <CardContent>
             <ul className="flex flex-wrap gap-2">
@@ -202,15 +208,18 @@ function ProfilePanel() {
         </Card>
 
         <Card>
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between gap-3">
             <CardTitle>{t("profile.serviceAreas")}</CardTitle>
+            <Button type="button" variant="ghost" size="sm" onClick={() => setIsEditingServiceAreas(true)}>
+              {t("profile.editServiceAreas")}
+            </Button>
           </CardHeader>
           <CardContent>
-            <ul className="space-y-2">
+            <ul className="flex flex-wrap gap-2">
               {data.serviceAreas.map((area) => (
                 <li
                   key={`${area.city}-${area.district}`}
-                  className="flex items-center gap-1.5 text-sm text-ink/80"
+                  className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1.5 text-sm text-brand-deep"
                 >
                   <MapPin
                     aria-hidden="true"
@@ -220,14 +229,16 @@ function ProfilePanel() {
                 </li>
               ))}
             </ul>
+            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+              {t("profile.serviceAreasComingSoon")}
+            </p>
+            {isEditingServiceAreas ? <ServiceAreasEditor areas={data.serviceAreas} onDone={() => setIsEditingServiceAreas(false)} /> : null}
           </CardContent>
         </Card>
       </div>
 
-      <p className="flex items-start gap-2 rounded-xl border border-dashed border-line bg-card px-4 py-3 text-xs text-muted-foreground">
-        <ImagePlus aria-hidden="true" className="mt-0.5 size-3.5 shrink-0" />
-        {t("profile.uploadNote")}
-      </p>
+      <BusinessLogoManager name={data.name} />
+      <WorkshopDocumentsManager workshopId={data.id} />
     </div>
   );
 }

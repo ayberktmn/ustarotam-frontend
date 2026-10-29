@@ -7,6 +7,7 @@ import { HomeHero } from "@/features/home/home-hero";
 import { HomeProcessSection } from "@/features/home/home-process-section";
 import { HomeTestimonialsSection } from "@/features/home/home-testimonials-section";
 import { HomeTrustStrip } from "@/features/home/home-trust-strip";
+import { HomeWorkRequestCta } from "@/features/home/home-work-request-cta";
 import { getPathname } from "@/i18n/navigation";
 import { defaultOpenGraphImage } from "@/lib/site";
 import {
@@ -63,6 +64,7 @@ export default async function HomePage({ params }: HomePageProps) {
   return (
     <>
       <HomeHero />
+      <HomeWorkRequestCta />
       <HomeTrustStrip />
       <FeaturedWorkshopsSection
         featuredWorkshops={featuredWorkshops}

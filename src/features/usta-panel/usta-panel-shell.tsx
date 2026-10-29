@@ -12,6 +12,7 @@ import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { WorkshopIdentity } from "@/components/workshops/workshop-identity";
 import { useAuth } from "@/features/auth/auth-provider";
 import { PanelAccessDenied } from "@/features/usta-panel/panel-access-denied";
 import { usePanelProfile } from "@/features/usta-panel/queries";
@@ -87,15 +88,6 @@ function WorkshopPanelShell({ children }: WorkshopPanelShellProps) {
   }
 
   const workshop = profile.data;
-  const initials = workshop
-    ? workshop.name
-        .split(" ")
-        .map((part) => part.charAt(0))
-        .slice(0, 2)
-        .join("")
-        .toLocaleUpperCase()
-    : "";
-
   return (
     <div className="page-container section-y">
       <div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
@@ -104,12 +96,7 @@ function WorkshopPanelShell({ children }: WorkshopPanelShellProps) {
             {workshop ? (
               <>
                 <div className="flex items-center gap-3">
-                  <span
-                    aria-hidden="true"
-                    className="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand-soft text-base font-extrabold text-brand"
-                  >
-                    {initials}
-                  </span>
+                  <WorkshopIdentity name={workshop.name} />
                   <div className="min-w-0">
                     <p className="truncate text-base font-bold text-ink">
                       {workshop.name}
