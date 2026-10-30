@@ -59,25 +59,63 @@ it("forwards a validated raw workshop logo upload", async () => {
   expect(init.headers.get("authorization")).toBe("Bearer token");
 });
 
-it("forwards public workshop logo GET as binary and preserves non-404 errors", async () => {
+it("forwards a public workshop logo as binary behind the production proxy", async () => {
   const id = "10000000-0000-4000-8000-000000000001";
   const path = ["workshops", id, "logo"];
   const bytes = new Uint8Array([255, 216, 255, 224]);
-  const fetchMock = vi.fn()
-    .mockResolvedValueOnce(new Response(bytes, {status: 200, headers: {"content-type": "image/jpeg"}}))
-    .mockResolvedValueOnce(failureResponse(500, {code: "INTERNAL_SERVER_ERROR", headers: {"content-type": "application/json"}}));
+  vi.stubEnv("SITE_URL", "https://app.example.test");
+  const fetchMock = vi.fn().mockResolvedValue(
+    new Response(bytes, {status: 200, headers: {"content-type": "image/jpeg"}}),
+  );
   vi.stubGlobal("fetch", fetchMock);
 
-  const image = await routeGet(request(path.join("/")), {params: Promise.resolve({path})});
+  const imageRequest = new Request(`http://127.0.0.1:3002/api/local/${path.join("/")}`, {
+    headers: {
+      host: "127.0.0.1:3002",
+      "x-forwarded-host": "app.example.test",
+      "x-forwarded-proto": "https",
+    },
+  });
+  const image = await routeGet(imageRequest, {params: Promise.resolve({path})});
   expect(image.status).toBe(200);
   expect(image.headers.get("content-type")).toBe("image/jpeg");
   expect(new Uint8Array(await image.arrayBuffer())).toEqual(bytes);
   expect(fetchMock.mock.calls[0][0]).toBe(`${upstream}/${path.join("/")}`);
   expect(fetchMock.mock.calls[0][1].headers.get("accept")).toContain("image/webp");
+  expect(fetchMock.mock.calls[0][1].headers.get("authorization")).toBeNull();
+});
 
-  const error = await routeGet(request(path.join("/")), {params: Promise.resolve({path})});
-  expect(error.status).toBe(500);
-  expect(await error.json()).toMatchObject({error: {code: "INTERNAL_SERVER_ERROR"}});
+it("rejects a public logo request with a forged forwarded host", async () => {
+  const id = "10000000-0000-4000-8000-000000000001";
+  const path = ["workshops", id, "logo"];
+  vi.stubEnv("SITE_URL", "https://app.example.test");
+  const fetchMock = vi.fn();
+  vi.stubGlobal("fetch", fetchMock);
+  const forged = new Request(`http://127.0.0.1:3002/api/local/${path.join("/")}`, {
+    headers: {
+      host: "127.0.0.1:3002",
+      "x-forwarded-host": "attacker.example",
+      "x-forwarded-proto": "https",
+    },
+  });
+
+  const response = await routeGet(forged, {params: Promise.resolve({path})});
+  expect(response.status).toBe(403);
+  expect(await response.json()).toMatchObject({error: {code: "FORBIDDEN"}});
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
+it("preserves an upstream 404 for a missing public workshop logo", async () => {
+  const id = "10000000-0000-4000-8000-000000000001";
+  const path = ["workshops", id, "logo"];
+  const fetchMock = vi.fn().mockResolvedValue(
+    failureResponse(404, {code: "LOGO_NOT_FOUND", headers: {"content-type": "application/json"}}),
+  );
+  vi.stubGlobal("fetch", fetchMock);
+
+  const response = await routeGet(request(path.join("/")), {params: Promise.resolve({path})});
+  expect(response.status).toBe(404);
+  expect(await response.json()).toMatchObject({error: {code: "LOGO_NOT_FOUND"}});
 });
 
 it.each([[2 * 1024 * 1024 + 1, "image/png", 413], [3, "multipart/form-data", 415]] as const)("rejects invalid logo payload of %s bytes (%s)", async (size, mime, status) => {

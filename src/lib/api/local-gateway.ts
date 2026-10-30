@@ -66,6 +66,21 @@ function failure(status: number, code: string): Response {
     { status, headers: { "Cache-Control": "no-store" } });
 }
 
+function requestOrigin(request: Request): string | null {
+  const incoming = new URL(request.url);
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const forwardedProto = request.headers.get("x-forwarded-proto");
+  const host = forwardedHost ?? request.headers.get("host");
+  const protocol = forwardedProto ?? incoming.protocol.slice(0, -1);
+
+  if (!host || host.includes(",") || !/^(?:http|https)$/.test(protocol)) return null;
+  try {
+    return new URL(`${protocol}://${host}`).origin;
+  } catch {
+    return null;
+  }
+}
+
 function allowedPath(path: string, method: string): boolean {
   if (path === "workshops/mine/logo") return method === "PUT" || method === "DELETE";
   if (path === "workshops/mine/service-areas") return method === "GET" || method === "PUT";
@@ -165,8 +180,7 @@ export async function localGateway(request: Request, segments: string[]): Promis
   try { site = new URL(process.env.SITE_URL ?? ""); target = trustedUpstream(); }
   catch { return failure(503, "GATEWAY_NOT_CONFIGURED"); }
   const incoming = new URL(request.url);
-  if (incoming.origin !== site.origin ||
-      request.headers.get("host") !== site.host) return failure(403, "FORBIDDEN");
+  if (requestOrigin(request) !== site.origin) return failure(403, "FORBIDDEN");
   const origin = request.headers.get("origin");
   const fetchSite = request.headers.get("sec-fetch-site");
   if ((fetchSite && fetchSite !== "same-origin" && fetchSite !== "none") ||
