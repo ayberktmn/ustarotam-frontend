@@ -5,6 +5,7 @@ const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  skipProxyUrlNormalize: true,
   logging: {
     incomingRequests: { ignore: [/\/(?:email-verified|sifre-sifirla|sifremi-sifirla|reset-password)(?:\?|$)/, /[?&]token=/] },
   },
