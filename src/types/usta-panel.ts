@@ -177,6 +177,8 @@ export type PanelVerificationStatus =
   | "SUSPENDED";
 
 export interface WorkshopPanelServiceArea {
+  provinceId: string;
+  districtId: string | null;
   city: string;
   district: string;
 }
@@ -187,7 +189,10 @@ export interface WorkshopPanelProfile {
   ownerName: string;
   email: string;
   phone: string;
+  logoUrl: string | null;
   about: LocalizedText;
+  provinceId: string;
+  districtId: string;
   city: string;
   district: string;
   address: LocalizedText;
@@ -195,6 +200,8 @@ export interface WorkshopPanelProfile {
   verification: PanelVerificationStatus;
   specialties: LocalizedText[];
   specialtyIds: string[];
+  vehicleTypeIds: string[];
+  brandIds: string[];
   serviceAreas: WorkshopPanelServiceArea[];
   rating: number;
   reviewCount: number;
@@ -202,7 +209,18 @@ export interface WorkshopPanelProfile {
 
 export interface UpdateWorkshopPanelProfileInput {
   name: string;
+  email: string;
   phone: string;
+  provinceId: string;
+  districtId: string;
+  address: string;
   about: LocalizedText;
   specialtyIds?: string[];
+  vehicleTypeIds?: string[];
+  brandIds?: string[];
+}
+
+export interface UpdateWorkshopServiceAreasInput {
+  provinceId: string;
+  districtId: string | null;
 }

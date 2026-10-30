@@ -144,7 +144,7 @@ function OffersView() {
       <div
         role="group"
         aria-label={t("offers.filtersLabel")}
-        className="flex gap-2 overflow-x-auto rounded-2xl border border-line bg-card p-2 shadow-card"
+        className="grid grid-cols-2 gap-2 rounded-2xl border border-line bg-card p-2 shadow-card sm:flex sm:overflow-x-auto"
       >
         {FILTERS.map((item) => (
           <Button
@@ -264,14 +264,14 @@ function OffersView() {
                   ) : null}
                 </CardContent>
 
-                <CardFooter className="justify-between">
+                <CardFooter className="flex-col items-stretch justify-between sm:flex-row sm:items-center">
                   <p className="text-xs text-muted-foreground">
                     {t("offers.sent", {
                       date: formatDate(offer.createdAt, locale),
                     })}
                   </p>
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2 sm:justify-end">
                     {status === "SUBMITTED" ? (
                       <>
                         <Button

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import type { ApiRequestFn } from "@/lib/api/client";
 import { apiWorkshopSchema } from "@/lib/api/schemas";
@@ -17,6 +17,7 @@ const workshop = {
 };
 
 describe("public workshop HTTP contracts", () => {
+  afterEach(() => vi.unstubAllEnvs());
   it.each([
     ["PENDING", undefined],
     ["REJECTED", undefined],
@@ -72,6 +73,36 @@ describe("public workshop HTTP contracts", () => {
     }));
     expect(result.meta.totalPages).toBe(2);
     expect(result.items[0].specialties).toEqual(["motor"]);
+  });
+
+  it("accepts the deployed relative logo URL in the account workshop list", async () => {
+    vi.stubEnv("NEXT_PUBLIC_API_BASE_URL", "https://api.test/api/v1");
+    const deployedWorkshop = {
+      ...workshop,
+      description: null,
+      phone: null,
+      address: null,
+      logoUrl: `/api/v1/workshops/${workshop.id}/logo`,
+      averageRating: null,
+      reviewCount: 0,
+    };
+    const request = vi.fn(async (options) => options.schema.parse({
+      success: true,
+      data: [deployedWorkshop],
+      meta: { page: 1, limit: 12, total: 1, totalPages: 1, sort: "rating_desc" },
+    })) as ApiRequestFn;
+
+    const result = await createWorkshopService(request).list({ page: 1, limit: 12 });
+
+    expect(result.items[0]).toMatchObject({
+      id: workshop.id,
+      logoUrl: `https://api.test/api/v1/workshops/${workshop.id}/logo`,
+      rating: null,
+    });
+  });
+
+  it("still rejects unrecognized relative logo paths", () => {
+    expect(apiWorkshopSchema.safeParse({ ...workshop, logoUrl: "/uploads/logo.png" }).success).toBe(false);
   });
 
   it("loads a public workshop detail by UUID", async () => {

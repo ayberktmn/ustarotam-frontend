@@ -144,7 +144,7 @@ function JobsView() {
       <div
         role="group"
         aria-label={t("jobs.filtersLabel")}
-        className="flex gap-2 overflow-x-auto rounded-2xl border border-line bg-card p-2 shadow-card"
+        className="grid grid-cols-2 gap-2 rounded-2xl border border-line bg-card p-2 shadow-card sm:flex sm:overflow-x-auto"
       >
         {FILTERS.map((item) => (
           <Button
@@ -157,6 +157,7 @@ function JobsView() {
               setFilter(item);
               setEditingRequestId(null);
             }}
+            className="min-w-0"
           >
             {t(`jobs.filters.${item}`)}
             <span className="text-xs text-muted-foreground">

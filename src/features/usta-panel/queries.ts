@@ -218,3 +218,38 @@ export function useUpdatePanelProfile() {
     },
   });
 }
+
+export function usePanelServiceAreas() {
+  return useQuery({
+    queryKey: queryKeys.workshopPanel.serviceAreas,
+    queryFn: () => workshopPanelRepository.getServiceAreas(),
+    ...PANEL_QUERY_OPTIONS,
+  });
+}
+
+export function useUpdatePanelServiceAreas() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: workshopPanelRepository.updateServiceAreas,
+    onSuccess: (areas) => {
+      queryClient.setQueryData(queryKeys.workshopPanel.serviceAreas, areas);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.workshopPanel.profile });
+    },
+  });
+}
+
+export function useUploadPanelLogo() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => workshopPanelRepository.uploadLogo(file),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: queryKeys.workshopPanel.profile }),
+  });
+}
+
+export function useDeletePanelLogo() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => workshopPanelRepository.deleteLogo(),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: queryKeys.workshopPanel.profile }),
+  });
+}

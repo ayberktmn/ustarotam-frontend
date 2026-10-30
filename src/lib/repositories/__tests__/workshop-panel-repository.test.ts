@@ -143,7 +143,11 @@ describe("workshop panel mock repository", () => {
 
     await repository.updateProfile({
       name: "Ege Motor Servisi",
+      email: "servis@example.test",
       phone: "+90 555 111 22 33",
+      provinceId: "province-manisa",
+      districtId: "district-sehzadeler",
+      address: "Test adresi",
       about: {
         tr: "Motor, fren ve periyodik bakım alanında hizmet veren bir atölye.",
         en: "A workshop serving engine, brake and periodic maintenance.",

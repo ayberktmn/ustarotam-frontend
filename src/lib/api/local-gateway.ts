@@ -5,6 +5,7 @@ const LOCAL_COOKIE = "usta_rotam_dev_refresh";
 const UPSTREAM_COOKIE = "ustarotam_refresh";
 const COOKIE_PATH = "/api/local/auth";
 const MAX_BODY_BYTES = 16_384;
+const MAX_LOGO_BYTES = 2 * 1024 * 1024;
 const MAX_COOKIE_AGE = 90 * 86_400;
 const applicationId = "[a-zA-Z0-9_-]{1,128}";
 const workRequestId = "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}";
@@ -14,7 +15,9 @@ const applicationDocumentReadPath = new RegExp(`^workshop-applications/${applica
 const workRequestPath = new RegExp(`^work-requests(?:/mine|/${workRequestId})?$`);
 const workRequestCancelPath = new RegExp(`^work-requests/${workRequestId}/cancel$`);
 const workRequestDetailPath = new RegExp(`^work-requests/${workRequestId}$`);
+const workshopLogoReadPath = new RegExp(`^workshops/${workRequestId}/logo$`);
 const documentMimeTypes = new Set([PDF_MIME, DOCX_MIME]);
+const logoMimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const protectedListPath = /^(reviews\/mine|work-offers\/(matching|mine)|conversations|notifications)$/;
 
 class UploadBodyError extends Error {
@@ -41,14 +44,33 @@ async function readDocumentBody(request: Request): Promise<ArrayBuffer> {
   return new Uint8Array(Buffer.concat(chunks)).buffer;
 }
 
+async function readLogoBody(request: Request): Promise<ArrayBuffer> {
+  if (!logoMimeTypes.has(request.headers.get("content-type") ?? "")) throw new UploadBodyError(415, "INVALID_LOGO_TYPE");
+  if (!request.body) throw new UploadBodyError(400, "EMPTY_LOGO");
+  const reader = request.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let length = 0;
+  for (;;) {
+    const {done, value} = await reader.read();
+    if (done) break;
+    length += value.byteLength;
+    if (length > MAX_LOGO_BYTES) { await reader.cancel(); throw new UploadBodyError(413, "LOGO_TOO_LARGE"); }
+    chunks.push(value);
+  }
+  if (!length) throw new UploadBodyError(400, "EMPTY_LOGO");
+  return new Uint8Array(Buffer.concat(chunks)).buffer;
+}
+
 function failure(status: number, code: string): Response {
   return Response.json({ success: false, error: { code, message: "API gateway request failed." } },
     { status, headers: { "Cache-Control": "no-store" } });
 }
 
 function allowedPath(path: string, method: string): boolean {
+  if (path === "workshops/mine/logo") return method === "PUT" || method === "DELETE";
+  if (path === "workshops/mine/service-areas") return method === "GET" || method === "PUT";
   if (method === "POST" && (path === "work-requests" || workRequestCancelPath.test(path) || path === "workshop-applications" || path === "workshop-applications/drafts" || /^workshop-applications\/[a-zA-Z0-9_-]{1,128}\/submit$/.test(path) || documentUploadPath.test(path))) return true;
-  if (method === "GET" && (path === "workshop-applications/mine" || applicationDocumentsPath.test(path) || applicationDocumentReadPath.test(path))) return true;
+  if (method === "GET" && (path === "workshop-applications/mine" || applicationDocumentsPath.test(path) || applicationDocumentReadPath.test(path) || workshopLogoReadPath.test(path))) return true;
   if (method === "PATCH") return path === "auth/me" || workRequestDetailPath.test(path) || /^workshops\/[a-zA-Z0-9-]+$/.test(path) || /^workshop-applications\/[a-zA-Z0-9_-]{1,128}$/.test(path);
   if (method === "POST") return /^auth\/(login|register|refresh|logout|email-verification\/(resend|confirm)|password-reset\/(request|confirm))$/.test(path);
   if (method !== "GET") return false;
@@ -155,9 +177,10 @@ export async function localGateway(request: Request, segments: string[]): Promis
   const path = segments.join("/");
   if (!allowedPath(path, request.method)) return failure(404, "NOT_FOUND");
   const isDocumentUpload = request.method === "POST" && documentUploadPath.test(path);
+  const isLogoUpload = request.method === "PUT" && path === "workshops/mine/logo";
   let body: string | ArrayBuffer | undefined;
   let cookie: string | null;
-  try { body = isDocumentUpload ? await readDocumentBody(request) : await readBody(request); cookie = refreshCookie(request); }
+  try { body = isDocumentUpload ? await readDocumentBody(request) : isLogoUpload ? await readLogoBody(request) : await readBody(request); cookie = refreshCookie(request); }
   catch (error) {
     if (error instanceof UploadBodyError) return failure(error.status, error.code);
     return failure(400, "VALIDATION_ERROR");
@@ -166,8 +189,9 @@ export async function localGateway(request: Request, segments: string[]): Promis
   // empty session probes here before they reach the production auth service.
   if (path === "auth/refresh" && !cookie) return failure(401, "REFRESH_TOKEN_MISSING");
   if (path === "auth/logout" && !cookie) return new Response(null, {status: 204, headers: {"Cache-Control": "no-store"}});
-  const headers = new Headers({ Accept: "application/json" });
-  if (body) headers.set("Content-Type", isDocumentUpload ? request.headers.get("content-type")! : "application/json");
+  const isLogoRead = request.method === "GET" && workshopLogoReadPath.test(path);
+  const headers = new Headers({ Accept: isLogoRead ? "image/avif,image/webp,image/png,image/jpeg" : "application/json" });
+  if (body) headers.set("Content-Type", isDocumentUpload || isLogoUpload ? request.headers.get("content-type")! : "application/json");
   if (cookie && ["auth/refresh", "auth/logout"].includes(path)) headers.set("Cookie", cookie);
   const protectedListAuthorization = request.headers.get("authorization");
   if (protectedListPath.test(path) &&
@@ -179,7 +203,7 @@ export async function localGateway(request: Request, segments: string[]): Promis
   // Construct path from validated segments, never from a caller-supplied URL.
   const url = `${target.origin}/api/v1/${path}${incoming.search}`;
   try {
-    const timeoutSignal = AbortSignal.timeout(isDocumentUpload ? 120_000 : 10_000);
+    const timeoutSignal = AbortSignal.timeout(isDocumentUpload || isLogoUpload ? 120_000 : 10_000);
     const upstreamSignal = AbortSignal.any([request.signal, timeoutSignal]);
     const upstream = await fetch(url, { method: request.method, headers, body, cache: "no-store",
       redirect: "manual", signal: upstreamSignal });
@@ -196,6 +220,7 @@ export async function localGateway(request: Request, segments: string[]): Promis
       responseHeaders.set("Content-Type", contentType);
       responseHeaders.set("Content-Disposition", "attachment");
     }
+    else if (isLogoRead && contentType && logoMimeTypes.has(contentType)) responseHeaders.set("Content-Type", contentType);
     else if (upstream.status !== 204) return failure(502, "GATEWAY_INVALID_RESPONSE");
     // Error responses are authoritative and must not be replaced by a cookie
     // parsing failure. Auth cookies are only meaningful on successful flows.

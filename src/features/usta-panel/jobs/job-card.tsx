@@ -52,14 +52,14 @@ function JobCard({
     <Card>
       <CardHeader>
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
+          <div className="min-w-0">
             <h2 className="text-h3 text-ink">
-              {request.vehicle.year} {request.vehicle.brand}{" "}
-              {request.vehicle.model}
+              {[request.vehicle.brand, request.vehicle.model]
+                .filter(Boolean)
+                .join(" ") || panelText(request.vehicle.type, locale)}
             </h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              {panelText(request.vehicle.type, locale)} ·{" "}
-              {panelText(request.vehicle.fuel, locale)}
+              {panelText(request.vehicle.type, locale)}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -98,11 +98,13 @@ function JobCard({
               <dd>{t("jobs.distanceValue", { count: request.distanceKm })}</dd>
             </div>
           ) : null}
-          <div className="flex items-center gap-1.5">
-            <CalendarDays aria-hidden="true" className="size-3.5 text-brand" />
-            <dt className="sr-only">{t("jobs.posted")}</dt>
-            <dd>{formatDate(request.createdAt, locale)}</dd>
-          </div>
+          {request.createdAt ? (
+            <div className="flex items-center gap-1.5">
+              <CalendarDays aria-hidden="true" className="size-3.5 text-brand" />
+              <dt className="sr-only">{t("jobs.posted")}</dt>
+              <dd>{formatDate(request.createdAt, locale)}</dd>
+            </div>
+          ) : null}
           <div className="flex items-center gap-1.5">
             <Camera aria-hidden="true" className="size-3.5 text-brand" />
             <dt className="sr-only">{t("jobs.photos")}</dt>
@@ -112,9 +114,11 @@ function JobCard({
       </CardHeader>
 
       <CardContent>
-        <p className="text-sm leading-relaxed text-ink/80">
-          {panelText(request.description, locale)}
-        </p>
+        {panelText(request.description, locale) ? (
+          <p className="break-words text-sm leading-relaxed text-ink/80">
+            {panelText(request.description, locale)}
+          </p>
+        ) : null}
         <p className="mt-3 flex items-start gap-1.5 text-xs text-muted-foreground">
           <ShieldCheck
             aria-hidden="true"
@@ -125,7 +129,7 @@ function JobCard({
         {children}
       </CardContent>
 
-      <CardFooter className="justify-between">
+      <CardFooter className="flex-col items-stretch justify-between sm:flex-row sm:items-center">
         <p className="flex items-center gap-1.5 text-sm text-ink/75">
           <Banknote aria-hidden="true" className="size-4 text-brand" />
           {request.budget ? (
@@ -141,7 +145,7 @@ function JobCard({
         </p>
 
         {offer ? (
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 sm:justify-end">
             <span className="text-sm font-bold text-ink">
               {formatCurrency(offer.amount, offer.currency, locale)}
             </span>
@@ -168,6 +172,7 @@ function JobCard({
           <Button
             type="button"
             size="sm"
+            className="w-full sm:w-auto"
             variant={isEditingOffer ? "ghost" : "default"}
             onClick={onToggleOffer}
           >

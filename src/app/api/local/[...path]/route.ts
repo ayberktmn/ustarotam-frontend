@@ -7,4 +7,4 @@ async function handle(request: Request, context: { params: Promise<{ path: strin
   return localGateway(request, path);
 }
 
-export { handle as GET, handle as POST, handle as PATCH };
+export { handle as GET, handle as POST, handle as PUT, handle as PATCH, handle as DELETE };

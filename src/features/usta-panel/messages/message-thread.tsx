@@ -120,7 +120,7 @@ function MessageThread({ conversationId, onBack }: MessageThreadProps) {
         </div>
       </div>
 
-      <div className="flex-1 space-y-3 overflow-y-auto px-5 py-5">
+      <div className="flex-1 space-y-3 overflow-y-auto px-3 py-4 sm:px-5 sm:py-5">
         {data.messages.map((message) => {
           const isWorkshop = message.sender === "WORKSHOP";
 
@@ -153,7 +153,7 @@ function MessageThread({ conversationId, onBack }: MessageThreadProps) {
 
       <form
         onSubmit={handleSubmit}
-        className="border-t border-line p-4"
+        className="border-t border-line p-3 sm:p-4"
         aria-label={t("messages.formLabel")}
       >
         <Textarea
@@ -164,7 +164,7 @@ function MessageThread({ conversationId, onBack }: MessageThreadProps) {
           className="min-h-20"
           aria-label={t("messages.placeholder")}
         />
-        <div className="mt-2 flex items-center justify-between gap-3">
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-3">
           <p className="text-xs text-muted-foreground">
             {t("messages.characterCount", { count: body.length, max: 1000 })}
           </p>

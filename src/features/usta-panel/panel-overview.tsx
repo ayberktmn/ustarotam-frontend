@@ -72,7 +72,7 @@ function PanelOverview() {
     return <OverviewSkeleton />;
   }
 
-  if (requests.isError || offers.isError || reviews.isError) {
+  if (requests.isError || offers.isError) {
     return (
       <ErrorState
         title={t("overview.errorTitle")}
@@ -81,7 +81,6 @@ function PanelOverview() {
         onRetry={() => {
           void requests.refetch();
           void offers.refetch();
-          void reviews.refetch();
         }}
       />
     );
@@ -131,14 +130,14 @@ function PanelOverview() {
     {
       key: "rating",
       label: t("overview.stats.rating"),
-      value: rating ? formatRating(rating.average, locale) : "—",
+      value: reviews.isError ? "—" : rating ? formatRating(rating.average, locale) : "—",
       icon: Star,
       href: "/usta-panel/yorumlar" as const,
     },
     {
       key: "unreadMessages",
       label: t("overview.stats.unreadMessages"),
-      value: formatCount(unreadMessages, locale),
+      value: conversations.isError ? "—" : formatCount(unreadMessages, locale),
       icon: MessageSquareText,
       href: "/usta-panel/mesajlar" as const,
     },
@@ -189,6 +188,9 @@ function PanelOverview() {
                   })}
                 </p>
               ) : null}
+              {stat.key === "unreadMessages" && conversations.isError ? (
+                <p role="alert" className="mt-1 text-xs text-destructive">{t("messages.errorTitle")}</p>
+              ) : null}
             </Link>
           );
         })}
@@ -229,21 +231,24 @@ function PanelOverview() {
                       className="block rounded-xl border border-line px-4 py-3 transition-colors hover:border-brand/35 hover:bg-brand-soft/40 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
                     >
                       <div className="flex flex-wrap items-start justify-between gap-2">
-                        <p className="text-sm font-bold text-ink">
-                          {request.vehicle.year} {request.vehicle.brand}{" "}
-                          {request.vehicle.model}
+                        <p className="min-w-0 break-words text-sm font-bold text-ink">
+                          {[request.vehicle.brand, request.vehicle.model]
+                            .filter(Boolean)
+                            .join(" ") || panelText(request.vehicle.type, locale)}
                         </p>
                         <Badge variant="secondary">
                           {panelText(request.specialty, locale)}
                         </Badge>
                       </div>
                       <p className="mt-1 text-xs text-muted-foreground">
-                        {request.city} / {request.district} ·{" "}
-                        {formatDate(request.createdAt, locale)}
+                        {request.city} / {request.district}
+                        {request.createdAt ? ` · ${formatDate(request.createdAt, locale)}` : ""}
                       </p>
-                      <p className="mt-2 line-clamp-2 text-sm text-ink/75">
-                        {panelText(request.description, locale)}
-                      </p>
+                      {panelText(request.description, locale) ? (
+                        <p className="mt-2 line-clamp-2 break-words text-sm text-ink/75">
+                          {panelText(request.description, locale)}
+                        </p>
+                      ) : null}
                     </Link>
                   </li>
                 ))}
@@ -261,7 +266,12 @@ function PanelOverview() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              {rating ? (
+              {reviews.isError ? (
+                <div role="alert" className="space-y-3">
+                  <p className="text-sm text-destructive">{t("reviews.errorDescription")}</p>
+                  <Button type="button" variant="outline" size="sm" onClick={() => void reviews.refetch()}>{t("reviews.retry")}</Button>
+                </div>
+              ) : rating ? (
                 <div className="flex items-center gap-4">
                   <p className="text-4xl font-extrabold text-ink">
                     {formatRating(rating.average, locale)}
@@ -321,7 +331,12 @@ function PanelOverview() {
               </Button>
             </CardHeader>
             <CardContent>
-              {recentNotifications.length === 0 ? (
+              {notifications.isError ? (
+                <div role="alert" className="space-y-3">
+                  <p className="text-sm text-destructive">{t("notifications.errorDescription")}</p>
+                  <Button type="button" variant="outline" size="sm" onClick={() => void notifications.refetch()}>{t("notifications.retry")}</Button>
+                </div>
+              ) : recentNotifications.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
                   {t("overview.noNotifications")}
                 </p>

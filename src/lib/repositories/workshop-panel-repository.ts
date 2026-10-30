@@ -19,6 +19,8 @@ import type {
   WorkshopPanelProfile,
   WorkshopPanelRequest,
   WorkshopPanelReviews,
+  WorkshopPanelServiceArea,
+  UpdateWorkshopServiceAreasInput,
 } from "@/types/usta-panel";
 import { createApiWorkshopPanelRepository } from "@/lib/repositories/workshop-panel-api-repository";
 
@@ -66,6 +68,10 @@ export interface WorkshopPanelRepository {
   updateProfile(
     input: UpdateWorkshopPanelProfileInput,
   ): Promise<WorkshopPanelProfile>;
+  getServiceAreas(): Promise<WorkshopPanelServiceArea[]>;
+  updateServiceAreas(areas: UpdateWorkshopServiceAreasInput[]): Promise<WorkshopPanelServiceArea[]>;
+  uploadLogo(file: File): Promise<string>;
+  deleteLogo(): Promise<void>;
 }
 
 const MOCK_LATENCY_MS = 180;
@@ -355,13 +361,26 @@ export function createMockWorkshopPanelRepository(): WorkshopPanelRepository {
       profile = {
         ...profile,
         name: input.name,
+        email: input.email,
         phone: input.phone,
+        provinceId: input.provinceId,
+        districtId: input.districtId,
+        address: { tr: input.address, en: input.address },
         about: input.about,
         ...(input.specialtyIds && { specialtyIds: input.specialtyIds }),
+        ...(input.vehicleTypeIds && { vehicleTypeIds: input.vehicleTypeIds }),
+        ...(input.brandIds && { brandIds: input.brandIds }),
       };
 
       return respond(profile);
     },
+    async getServiceAreas() { return respond(profile.serviceAreas); },
+    async updateServiceAreas(areas) {
+      profile = { ...profile, serviceAreas: areas.map((area) => ({ ...area, city: area.provinceId, district: area.districtId ?? "" })) };
+      return respond(profile.serviceAreas);
+    },
+    async uploadLogo() { const logoUrl = "https://example.test/logo.webp"; profile = { ...profile, logoUrl }; return logoUrl; },
+    async deleteLogo() { profile = { ...profile, logoUrl: null }; },
   };
 }
 

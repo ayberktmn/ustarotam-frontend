@@ -138,7 +138,7 @@ function ProfilePanel() {
                   <p className="text-xs font-semibold tracking-wide text-muted-foreground uppercase">
                     {t("profile.email")}
                   </p>
-                  <p className="mt-1 flex items-center gap-1.5 text-sm font-semibold text-ink">
+                  <p className="mt-1 flex min-w-0 items-center gap-1.5 break-all text-sm font-semibold text-ink">
                     <Mail
                       aria-hidden="true"
                       className="size-3.5 text-brand"
@@ -188,7 +188,7 @@ function ProfilePanel() {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-3">
+          <CardHeader className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
             <CardTitle>{t("profile.specialties")}</CardTitle>
             <Button type="button" variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
               {t("profile.editSpecialties")}
@@ -208,7 +208,7 @@ function ProfilePanel() {
         </Card>
 
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between gap-3">
+          <CardHeader className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
             <CardTitle>{t("profile.serviceAreas")}</CardTitle>
             <Button type="button" variant="ghost" size="sm" onClick={() => setIsEditingServiceAreas(true)}>
               {t("profile.editServiceAreas")}
@@ -229,15 +229,12 @@ function ProfilePanel() {
                 </li>
               ))}
             </ul>
-            <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
-              {t("profile.serviceAreasComingSoon")}
-            </p>
             {isEditingServiceAreas ? <ServiceAreasEditor areas={data.serviceAreas} onDone={() => setIsEditingServiceAreas(false)} /> : null}
           </CardContent>
         </Card>
       </div>
 
-      <BusinessLogoManager name={data.name} />
+      <BusinessLogoManager name={data.name} logoUrl={data.logoUrl} />
       <WorkshopDocumentsManager workshopId={data.id} />
     </div>
   );

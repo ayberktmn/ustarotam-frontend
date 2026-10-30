@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { localGateway, localizeRefreshCookie } from "../local-gateway";
+import { DELETE as routeDelete, GET as routeGet, PUT as routePut } from "@/app/api/local/[...path]/route";
 import { failureResponse, successEnvelope } from "./helpers";
 
 const upstream = "https://api.example.test/api/v1";
@@ -43,6 +44,65 @@ it.each([[10 * 1024 * 1024 + 1, "application/pdf", 413], [3, "multipart/form-dat
   const req = new Request(`${origin}/api/local/${path}`, {method: "POST", headers: {host: "localhost:3000", origin, "content-type": mime}, body: new Uint8Array(size)});
   expect((await localGateway(req, path.split("/"))).status).toBe(status);
   expect(fetchMock).not.toHaveBeenCalled();
+});
+
+it("forwards a validated raw workshop logo upload", async () => {
+  const bytes = new Uint8Array([82, 73, 70, 70]);
+  const fetchMock = vi.fn().mockResolvedValue(successEnvelope({logoUrl: "https://cdn.test/logo.webp"}));
+  vi.stubGlobal("fetch", fetchMock);
+  const path = "workshops/mine/logo";
+  const req = new Request(`${origin}/api/local/${path}`, {method: "PUT", headers: {host: "localhost:3000", origin, "content-type": "image/webp", authorization: "Bearer token"}, body: bytes});
+  expect((await localGateway(req, path.split("/"))).status).toBe(200);
+  const [, init] = fetchMock.mock.calls[0];
+  expect(new Uint8Array(init.body)).toEqual(bytes);
+  expect(init.headers.get("content-type")).toBe("image/webp");
+  expect(init.headers.get("authorization")).toBe("Bearer token");
+});
+
+it("forwards public workshop logo GET as binary and preserves non-404 errors", async () => {
+  const id = "10000000-0000-4000-8000-000000000001";
+  const path = ["workshops", id, "logo"];
+  const bytes = new Uint8Array([255, 216, 255, 224]);
+  const fetchMock = vi.fn()
+    .mockResolvedValueOnce(new Response(bytes, {status: 200, headers: {"content-type": "image/jpeg"}}))
+    .mockResolvedValueOnce(failureResponse(500, {code: "INTERNAL_SERVER_ERROR", headers: {"content-type": "application/json"}}));
+  vi.stubGlobal("fetch", fetchMock);
+
+  const image = await routeGet(request(path.join("/")), {params: Promise.resolve({path})});
+  expect(image.status).toBe(200);
+  expect(image.headers.get("content-type")).toBe("image/jpeg");
+  expect(new Uint8Array(await image.arrayBuffer())).toEqual(bytes);
+  expect(fetchMock.mock.calls[0][0]).toBe(`${upstream}/${path.join("/")}`);
+  expect(fetchMock.mock.calls[0][1].headers.get("accept")).toContain("image/webp");
+
+  const error = await routeGet(request(path.join("/")), {params: Promise.resolve({path})});
+  expect(error.status).toBe(500);
+  expect(await error.json()).toMatchObject({error: {code: "INTERNAL_SERVER_ERROR"}});
+});
+
+it.each([[2 * 1024 * 1024 + 1, "image/png", 413], [3, "multipart/form-data", 415]] as const)("rejects invalid logo payload of %s bytes (%s)", async (size, mime, status) => {
+  const fetchMock = vi.fn(); vi.stubGlobal("fetch", fetchMock);
+  const path = "workshops/mine/logo";
+  const req = new Request(`${origin}/api/local/${path}`, {method: "PUT", headers: {host: "localhost:3000", origin, "content-type": mime}, body: new Uint8Array(size)});
+  expect((await localGateway(req, path.split("/"))).status).toBe(status);
+  expect(fetchMock).not.toHaveBeenCalled();
+});
+
+it("exports PUT and DELETE route handlers for the owner logo endpoint", async () => {
+  const fetchMock = vi.fn()
+    .mockResolvedValueOnce(successEnvelope({logoUrl: "https://cdn.test/logo.webp"}))
+    .mockResolvedValueOnce(new Response(null, {status: 204}));
+  vi.stubGlobal("fetch", fetchMock);
+  const path = ["workshops", "mine", "logo"];
+  const headers = {host: "localhost:3000", origin, authorization: "Bearer token", cookie: "usta_rotam_dev_refresh=secret"};
+  const put = new Request(`${origin}/api/local/${path.join("/")}`, {method: "PUT", headers: {...headers, "content-type": "image/png"}, body: new Uint8Array([1, 2, 3])});
+  expect((await routePut(put, {params: Promise.resolve({path})})).status).toBe(200);
+  const remove = new Request(`${origin}/api/local/${path.join("/")}`, {method: "DELETE", headers});
+  expect((await routeDelete(remove, {params: Promise.resolve({path})})).status).toBe(204);
+  expect(fetchMock.mock.calls.map(([url, init]) => ({url, method: init.method, authorization: init.headers.get("authorization"), cookie: init.headers.get("cookie")}))).toEqual([
+    {url: `${upstream}/workshops/mine/logo`, method: "PUT", authorization: "Bearer token", cookie: null},
+    {url: `${upstream}/workshops/mine/logo`, method: "DELETE", authorization: "Bearer token", cookie: null},
+  ]);
 });
 
 it("rejects cross-origin application uploads and unrecognized document types", async () => {

@@ -89,14 +89,14 @@ function WorkshopPanelShell({ children }: WorkshopPanelShellProps) {
 
   const workshop = profile.data;
   return (
-    <div className="page-container section-y">
-      <div className="grid gap-8 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start">
+    <div className="page-container section-y overflow-x-clip">
+      <div className="grid gap-5 lg:grid-cols-[280px_minmax(0,1fr)] lg:items-start lg:gap-8">
         <aside className="space-y-4 lg:sticky lg:top-24">
           <div className="rounded-2xl border border-line bg-card p-5 shadow-card">
             {workshop ? (
               <>
                 <div className="flex items-center gap-3">
-                  <WorkshopIdentity name={workshop.name} />
+                  <WorkshopIdentity name={workshop.name} logoUrl={workshop.logoUrl} />
                   <div className="min-w-0">
                     <p className="truncate text-base font-bold text-ink">
                       {workshop.name}
@@ -135,6 +135,12 @@ function WorkshopPanelShell({ children }: WorkshopPanelShellProps) {
                   {workshop.city} / {workshop.district}
                 </p>
               </>
+            ) : profile.isError ? (
+              <div role="alert" className="space-y-3">
+                <p className="text-sm font-bold text-ink">{t("profile.errorTitle")}</p>
+                <p className="text-xs leading-relaxed text-muted-foreground">{t("profile.errorDescription")}</p>
+                <Button type="button" variant="outline" size="sm" onClick={() => void profile.refetch()}>{t("profile.retry")}</Button>
+              </div>
             ) : (
               <div className="space-y-3" aria-busy="true">
                 <div className="h-12 animate-pulse rounded-xl bg-muted" />
@@ -166,7 +172,7 @@ function WorkshopPanelShell({ children }: WorkshopPanelShellProps) {
           </div>
         </aside>
 
-        <div className="min-w-0">{children}</div>
+        <main className="min-w-0">{children}</main>
       </div>
     </div>
   );

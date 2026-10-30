@@ -3,6 +3,7 @@ import { z } from "zod";
 import { browserRequest } from "@/lib/api/client";
 import { createReviewService } from "@/lib/api/endpoints/reviews";
 import { createWorkshopService } from "@/lib/api/endpoints/workshops";
+import { apiWorkshopLogoSchema } from "@/lib/api/schemas";
 import type { WorkshopPanelRepository } from "@/lib/repositories/workshop-panel-repository";
 import type {
   OfferCurrency,
@@ -22,16 +23,18 @@ import type {
 const localized = (value: string) => ({ tr: value, en: value });
 const panelReviewService = createReviewService(browserRequest);
 const panelWorkshopService = createWorkshopService(browserRequest);
+const paginationSchema = z.object({ page: z.number().int().positive(), limit: z.number().int().positive(), total: z.number().int().nonnegative(), totalPages: z.number().int().nonnegative() });
 const paged = <T extends z.ZodTypeAny>(item: T) => z.object({ success: z.literal(true), data: z.array(item), meta: z.record(z.string(), z.unknown()).optional() });
 const entity = <T extends z.ZodTypeAny>(item: T) => z.object({ success: z.literal(true), data: item });
 
 const requestSchema = z.object({
-  id: z.string(), description: z.string(), status: z.string(), createdAt: z.coerce.string(),
+  id: z.string(), description: z.string().nullable().optional(), status: z.string(), createdAt: z.coerce.string().nullable().optional(),
   vehicleType: z.object({ name: z.string() }), vehicleBrand: z.object({ name: z.string() }).nullable().optional(),
   vehicleModel: z.object({ name: z.string() }).nullable().optional(), specialty: z.object({ name: z.string() }),
   province: z.object({ name: z.string() }), district: z.object({ name: z.string() }),
-  _count: z.object({ photos: z.number() }).optional(),
+  _count: z.object({ photos: z.number() }).nullable().optional(),
 });
+const matchingPaged = z.object({ success: z.literal(true), data: z.array(requestSchema), meta: paginationSchema });
 
 const offerSchema = z.object({
   id: z.string(), requestId: z.string(), amount: z.coerce.number(), currency: z.string(), description: z.string(),
@@ -46,17 +49,20 @@ const messageSchema = z.object({ id: z.string(), body: z.string(), createdAt: z.
 const conversationDetailSchema = z.object({ id: z.string(), requestId: z.string(), messages: z.array(messageSchema) });
 
 const notificationSchema = z.object({ id: z.string(), type: z.string(), title: z.string(), body: z.string(), requestId: z.string().nullable().optional(), readAt: z.coerce.string().nullable(), createdAt: z.coerce.string() });
+const namedProfileRelationSchema = z.object({ id: z.string(), name: z.string() });
+const serviceAreaSchema = z.object({ province: namedProfileRelationSchema, district: namedProfileRelationSchema.nullable() });
 const profileSchema = z.object({
-  id: z.string(), name: z.string(), ownerName: z.string(), email: z.string(), phone: z.string(), description: z.string().nullable(),
+  id: z.string(), name: z.string(), ownerName: z.string(), email: z.string(), phone: z.string(), description: z.string().nullable(), logoUrl: apiWorkshopLogoSchema.nullable().optional(),
   province: z.object({ id: z.string(), name: z.string() }), district: z.object({ id: z.string(), name: z.string() }), address: z.string(),
   status: z.enum(["PUBLISHED", "PENDING", "SUSPENDED"]), verificationStatus: z.string(),
   specialties: z.array(z.object({ id: z.string(), name: z.string() })),
-  serviceAreas: z.array(z.object({ province: z.object({ id: z.string(), name: z.string() }), district: z.object({ id: z.string(), name: z.string() }).nullable() })),
+  vehicleTypes: z.array(namedProfileRelationSchema).optional().default([]), brands: z.array(namedProfileRelationSchema).optional().default([]),
+  serviceAreas: z.array(serviceAreaSchema),
   averageRating: z.number().nullable(), reviewCount: z.number(),
 });
 
 function mapRequest(row: z.infer<typeof requestSchema>): WorkshopPanelRequest {
-  return { id: row.id, vehicle: { type: localized(row.vehicleType.name), brand: row.vehicleBrand?.name ?? "", model: row.vehicleModel?.name ?? "", year: 0, fuel: localized("") }, specialty: localized(row.specialty.name), city: row.province.name, district: row.district.name, distanceKm: null, description: localized(row.description), photoCount: row._count?.photos ?? 0, budget: null, status: row.status as WorkRequestStatus, createdAt: row.createdAt };
+  return { id: row.id, vehicle: { type: localized(row.vehicleType.name), brand: row.vehicleBrand?.name ?? "", model: row.vehicleModel?.name ?? "", year: 0, fuel: localized("") }, specialty: localized(row.specialty.name), city: row.province.name, district: row.district.name, distanceKm: null, description: localized(row.description ?? ""), photoCount: row._count?.photos ?? 0, budget: null, status: row.status as WorkRequestStatus, createdAt: row.createdAt ?? "" };
 }
 
 function mapOffer(row: z.infer<typeof offerSchema>): WorkshopPanelOffer {
@@ -80,7 +86,12 @@ function mapNotification(row: z.infer<typeof notificationSchema>): WorkshopPanel
 
 export function createApiWorkshopPanelRepository(): WorkshopPanelRepository {
   return {
-    async listRequests() { const response = await browserRequest({ path: "/work-offers/matching", schema: paged(requestSchema), responseMode: "raw", auth: "required" }); return response.data.map(mapRequest); },
+    async listRequests() {
+      const getPage = (page: number) => browserRequest({ path: "/work-offers/matching", query: { page, limit: 20 }, schema: matchingPaged, responseMode: "raw", auth: "required" });
+      const first = await getPage(1);
+      const remaining = await Promise.all(Array.from({ length: Math.max(0, first.meta.totalPages - 1) }, (_, index) => getPage(index + 2)));
+      return [first, ...remaining].flatMap((response) => response.data).map(mapRequest);
+    },
     async listOffers() { const response = await browserRequest({ path: "/work-offers/mine", schema: paged(offerSchema), responseMode: "raw", auth: "required" }); return response.data.map(mapOffer); },
     async createOffer(input) { const row = await browserRequest({ path: `/work-offers/requests/${encodeURIComponent(input.requestId)}`, method: "POST", body: input, schema: offerSchema, auth: "required", retries: 0 }); return mapOffer(row); },
     async updateOffer(offerId, input) { await browserRequest({ path: `/work-offers/${encodeURIComponent(offerId)}`, method: "PATCH", body: input, schema: z.void(), auth: "required", retries: 0 }); const offers = await this.listOffers(); const updated = offers.find(({ id }) => id === offerId); if (!updated) throw new Error("Updated offer was not returned by the API."); return updated; },
@@ -118,7 +129,11 @@ export function createApiWorkshopPanelRepository(): WorkshopPanelRepository {
     async replyToReview(reviewId, reply) {
       await panelReviewService.reply(reviewId, reply);
     },
-    async getProfile() { const row = await browserRequest({ path: "/workshops/mine/profile", schema: profileSchema, auth: "required" }); return { id: row.id, name: row.name, ownerName: row.ownerName, email: row.email, phone: row.phone, about: localized(row.description ?? ""), city: row.province.name, district: row.district.name, address: localized(row.address), status: row.status, verification: row.verificationStatus as PanelVerificationStatus, specialties: row.specialties.map(({ name }) => localized(name)), specialtyIds: row.specialties.map(({ id }) => id), serviceAreas: row.serviceAreas.map(({ province, district }) => ({ city: province.name, district: district?.name ?? "" })), rating: row.averageRating ?? 0, reviewCount: row.reviewCount }; },
-    async updateProfile(input) { const profile = await this.getProfile(); await browserRequest({ path: `/workshops/${encodeURIComponent(profile.id)}`, method: "PATCH", body: { name: input.name, phone: input.phone, description: input.about.tr, ...(input.specialtyIds && { specialtyIds: input.specialtyIds }) }, schema: z.record(z.string(), z.unknown()), auth: "required", retries: 0 }); return this.getProfile(); },
+    async getProfile() { const row = await browserRequest({ path: "/workshops/mine/profile", schema: profileSchema, auth: "required" }); return { id: row.id, name: row.name, ownerName: row.ownerName, email: row.email, phone: row.phone, logoUrl: row.logoUrl ?? null, about: localized(row.description ?? ""), provinceId: row.province.id, districtId: row.district.id, city: row.province.name, district: row.district.name, address: localized(row.address), status: row.status, verification: row.verificationStatus as PanelVerificationStatus, specialties: row.specialties.map(({ name }) => localized(name)), specialtyIds: row.specialties.map(({ id }) => id), vehicleTypeIds: row.vehicleTypes.map(({ id }) => id), brandIds: row.brands.map(({ id }) => id), serviceAreas: row.serviceAreas.map(({ province, district }) => ({ provinceId: province.id, districtId: district?.id ?? null, city: province.name, district: district?.name ?? "" })), rating: row.averageRating ?? 0, reviewCount: row.reviewCount }; },
+    async updateProfile(input) { const profile = await this.getProfile(); await panelWorkshopService.update(profile.id, { name: input.name, email: input.email, phone: input.phone, provinceId: input.provinceId, districtId: input.districtId, address: input.address, description: input.about.tr, specialtyIds: input.specialtyIds, vehicleTypeIds: input.vehicleTypeIds, brandIds: input.brandIds }); return this.getProfile(); },
+    async getServiceAreas() { const rows = await browserRequest({ path: "/workshops/mine/service-areas", schema: z.array(serviceAreaSchema), auth: "required" }); return rows.map(({ province, district }) => ({ provinceId: province.id, districtId: district?.id ?? null, city: province.name, district: district?.name ?? "" })); },
+    async updateServiceAreas(areas) { const rows = await browserRequest({ path: "/workshops/mine/service-areas", method: "PUT", body: { areas }, schema: z.array(serviceAreaSchema), auth: "required", retries: 0 }); return rows.map(({ province, district }) => ({ provinceId: province.id, districtId: district?.id ?? null, city: province.name, district: district?.name ?? "" })); },
+    async uploadLogo(file) { const result = await browserRequest({ path: "/workshops/mine/logo", method: "PUT", binaryBody: file, schema: z.object({ logoUrl: z.string().url() }), auth: "required", retries: 0 }); return result.logoUrl; },
+    async deleteLogo() { await browserRequest({ path: "/workshops/mine/logo", method: "DELETE", schema: z.void(), auth: "required", retries: 0 }); },
   };
 }

@@ -45,5 +45,6 @@ export const queryKeys = {
     notifications: ["workshop-panel", "notifications"] as const,
     reviews: ["workshop-panel", "reviews"] as const,
     profile: ["workshop-panel", "profile"] as const,
+    serviceAreas: ["workshop-panel", "service-areas"] as const,
   },
 };

@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { FALLBACK_API_BASE_URL } from "@/lib/api/config";
 import type { AuthUser } from "@/types/auth";
 import type { PaginationMeta } from "@/types/api";
 import type { Specialty, VehicleType, Workshop } from "@/types/workshop";
@@ -140,6 +141,15 @@ const imageSchema = z.union([
     .passthrough(),
 ]);
 
+export const apiWorkshopLogoSchema = z
+  .union([
+    z.string().url(),
+    z.string().regex(/^\/api\/v1\/workshops\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\/logo$/i),
+  ])
+  .transform((value) => value.startsWith("/")
+    ? new URL(value, new URL(process.env.NEXT_PUBLIC_API_BASE_URL || FALLBACK_API_BASE_URL).origin).toString()
+    : value);
+
 export const apiWorkshopSchema: z.ZodType<Workshop> = z
   .object({
     id: idSchema,
@@ -159,7 +169,7 @@ export const apiWorkshopSchema: z.ZodType<Workshop> = z
     vehicleTypes: z.array(workshopVehicleTypeRelationSchema).optional(),
     images: z.array(imageSchema).optional(),
     coverImage: z.string().optional(),
-    logoUrl: z.string().url().nullable().optional(),
+    logoUrl: apiWorkshopLogoSchema.nullable().optional(),
   })
   .passthrough()
   .transform((value) => {

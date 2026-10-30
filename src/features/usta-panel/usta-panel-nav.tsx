@@ -42,7 +42,7 @@ function WorkshopPanelNav() {
   return (
     <nav
       aria-label={t("navLabel")}
-      className="flex gap-2 overflow-x-auto rounded-2xl border border-line bg-card p-2 shadow-card lg:flex-col lg:overflow-visible"
+      className="grid grid-cols-2 gap-2 rounded-2xl border border-line bg-card p-2 shadow-card sm:grid-cols-4 lg:flex lg:flex-col"
     >
       {items.map((item) => {
         const isActive =
@@ -64,14 +64,14 @@ function WorkshopPanelNav() {
             href={item.href}
             aria-current={isActive ? "page" : undefined}
             className={cn(
-              "flex shrink-0 items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-semibold transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+              "flex min-w-0 items-center gap-2 rounded-xl px-2.5 py-2.5 text-xs font-semibold transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:text-sm lg:gap-2.5 lg:px-3.5",
               isActive
                 ? "bg-brand-soft text-brand-deep"
                 : "text-ink/75 hover:bg-muted hover:text-ink",
             )}
           >
             <Icon aria-hidden="true" className="size-4" />
-            <span className="whitespace-nowrap">{t(`nav.${item.key}`)}</span>
+            <span className="min-w-0 truncate">{t(`nav.${item.key}`)}</span>
             {badgeCount > 0 ? (
               <span
                 aria-label={t("nav.unreadCount", { count: badgeCount })}
