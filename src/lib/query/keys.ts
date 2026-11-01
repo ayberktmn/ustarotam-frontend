@@ -34,6 +34,9 @@ export const queryKeys = {
       ["work-requests", "list", query] as const,
     details: ["work-requests", "detail"] as const,
     detail: (id: string) => ["work-requests", "detail", id] as const,
+    offerLists: (id: string) => ["work-requests", "offers", id] as const,
+    offers: (id: string, page: number, limit: number) =>
+      ["work-requests", "offers", id, page, limit] as const,
   },
   workshopPanel: {
     all: ["workshop-panel"] as const,

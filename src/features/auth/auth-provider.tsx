@@ -38,6 +38,7 @@ interface AuthContextValue {
   isRegistering: boolean;
   isLoggingOut: boolean;
   login: (input: LoginInput) => Promise<AuthSession>;
+  completeGoogleLogin: () => Promise<AuthUser>;
   register: (input: RegisterInput) => Promise<RegistrationResult>;
   resendEmailVerification: (email: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -167,6 +168,13 @@ function AuthProvider({ children }: { children: ReactNode }) {
           throw error;
         }
       },
+      completeGoogleLogin: async () => {
+        await queryClient.cancelQueries({ queryKey: queryKeys.auth.me });
+        const user = await authService.completeGoogleLogin();
+        queryClient.setQueryData(queryKeys.auth.me, user);
+        setSignedOut(false);
+        return user;
+      },
       register: async (input) => registerMutation.mutateAsync(input),
       resendEmailVerification: authService.resendEmailVerification,
       logout: async () => {
@@ -177,6 +185,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
     loginMutation,
     logoutMutation,
     registerMutation,
+    queryClient,
     sessionQuery.data,
     sessionQuery.isPending,
   ]);

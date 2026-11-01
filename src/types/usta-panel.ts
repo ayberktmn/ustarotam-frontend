@@ -5,6 +5,7 @@ export const WORK_REQUEST_STATUSES = [
   "PUBLISHED",
   "CANCELLED",
   "ASSIGNED",
+  "IN_PROGRESS",
   "COMPLETED",
 ] as const;
 
@@ -41,6 +42,7 @@ export interface WorkshopPanelRequest {
   specialty: LocalizedText;
   city: string;
   district: string;
+  address?: string;
   distanceKm: number | null;
   description: LocalizedText;
   photoCount: number;
@@ -50,10 +52,12 @@ export interface WorkshopPanelRequest {
 }
 
 export interface WorkshopPanelOfferRequest {
+  status?: WorkRequestStatus;
   vehicleLabel: string;
   specialty: LocalizedText;
   city: string;
   district: string;
+  address?: string;
 }
 
 export interface WorkshopPanelOffer {

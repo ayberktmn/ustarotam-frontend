@@ -1,20 +1,24 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, Ban, Pencil } from "lucide-react";
+import { useRef, useState } from "react";
+import { ArrowLeft, Ban, CalendarClock, Check, Pencil, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/ui/error-state";
 import { WorkRequestForm } from "@/features/account/work-request-form";
+import { WorkRequestReviewForm } from "@/features/account/work-request-review-form";
 import { Link } from "@/i18n/navigation";
 import { ApiError, workRequestService } from "@/lib/api";
-import { formatDate } from "@/lib/format";
+import { formatCurrency, formatCount, formatDate } from "@/lib/format";
 import { queryKeys } from "@/lib/query/keys";
 import { canCancelWorkRequest } from "@/lib/work-requests";
 import type { Locale } from "@/types/locale";
+import type { CreateReviewInput } from "@/types/review";
+import type { WorkOffer } from "@/types/work-offer";
 import type { WorkRequestStatus } from "@/types/work-request";
 
 function WorkRequestDetail({ id }: { id: string }) {
@@ -25,6 +29,11 @@ function WorkRequestDetail({ id }: { id: string }) {
   const [isEditing, setIsEditing] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [retryCancel, setRetryCancel] = useState(false);
+  const [offerPage, setOfferPage] = useState(1);
+  const [reviewSubmitted, setReviewSubmitted] = useState(false);
+  const [reviewAlreadySubmitted, setReviewAlreadySubmitted] = useState(false);
+  const requestActionLock = useRef(false);
+  const offerActionLock = useRef(false);
   const requestKey = queryKeys.workRequests.detail(id);
 
   const request = useQuery({
@@ -32,10 +41,17 @@ function WorkRequestDetail({ id }: { id: string }) {
     queryFn: ({ signal }) => workRequestService.getById(id, signal),
     retry: false,
   });
+  const offers = useQuery({
+    queryKey: queryKeys.workRequests.offers(id, offerPage, 20),
+    queryFn: () => workRequestService.listOffers(id, { page: offerPage, limit: 20 }),
+    enabled: Boolean(request.data),
+    retry: false,
+  });
 
   function invalidateRequest() {
     void queryClient.invalidateQueries({ queryKey: requestKey });
     void queryClient.invalidateQueries({ queryKey: queryKeys.workRequests.lists });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.workRequests.offerLists(id) });
   }
 
   const update = useMutation({
@@ -79,7 +95,88 @@ function WorkRequestDetail({ id }: { id: string }) {
       setRetryCancel(false);
     },
     onError: handleCancelError,
+    onSettled: () => {
+      requestActionLock.current = false;
+    },
   });
+  const acceptOffer = useMutation({
+    mutationFn: workRequestService.acceptOffer,
+    retry: false,
+    onSuccess: () => {
+      invalidateRequest();
+      setActionError(null);
+      toast.success(t("offerAcceptSuccess"));
+    },
+  });
+  const rejectOffer = useMutation({
+    mutationFn: workRequestService.rejectOffer,
+    retry: false,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.workRequests.offerLists(id) });
+      setActionError(null);
+      toast.success(t("offerRejectSuccess"));
+    },
+  });
+  const complete = useMutation({
+    mutationFn: () => workRequestService.complete(id),
+    retry: false,
+    onSuccess: (updated) => {
+      queryClient.setQueryData(requestKey, updated);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.workRequests.lists });
+      setActionError(null);
+      toast.success(t("completeSuccess"));
+    },
+    onError: (error) => {
+      setActionError(t("completeError"));
+      if (error instanceof ApiError && error.status === 409) invalidateRequest();
+    },
+    onSettled: () => {
+      requestActionLock.current = false;
+    },
+  });
+  const createReview = useMutation({
+    mutationFn: (input: CreateReviewInput) => workRequestService.createReview(id, input),
+    retry: false,
+    onSuccess: () => {
+      setReviewSubmitted(true);
+      setReviewAlreadySubmitted(false);
+      void queryClient.invalidateQueries({ queryKey: queryKeys.reviews.all });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.workshops.all });
+      toast.success(t("reviewSuccess"));
+    },
+    onError: (error) => {
+      if (error instanceof ApiError && error.code === "SERVICE_ALREADY_REVIEWED") {
+        setReviewAlreadySubmitted(true);
+      }
+    },
+  });
+
+  async function handleOfferDecision(offer: WorkOffer, decision: "accept" | "reject") {
+    if (offerActionLock.current || !window.confirm(t(decision === "accept" ? "acceptOfferConfirm" : "rejectOfferConfirm"))) return;
+    offerActionLock.current = true;
+    setActionError(null);
+    try {
+      await (decision === "accept" ? acceptOffer.mutateAsync(offer.id) : rejectOffer.mutateAsync(offer.id));
+    } catch (error) {
+      setActionError(t("offerActionError"));
+      if (error instanceof ApiError && error.status === 409) invalidateRequest();
+    } finally {
+      offerActionLock.current = false;
+    }
+  }
+
+  async function handleComplete() {
+    if (
+      requestActionLock.current ||
+      complete.isPending ||
+      !window.confirm(t("completeConfirm"))
+    ) {
+      return;
+    }
+
+    requestActionLock.current = true;
+    complete.mutate();
+  }
 
   if (request.isPending) {
     return <div className="space-y-4" aria-busy="true"><div className="h-12 w-56 animate-pulse rounded-lg bg-muted" /><div className="h-64 animate-pulse rounded-2xl bg-muted" /><span className="sr-only">{common("loading")}</span></div>;
@@ -103,11 +200,23 @@ function WorkRequestDetail({ id }: { id: string }) {
   }
 
   function confirmCancel() {
-    if (!window.confirm(t("cancelConfirm"))) return;
+    if (
+      requestActionLock.current ||
+      cancel.isPending ||
+      !window.confirm(t("cancelConfirm"))
+    ) {
+      return;
+    }
+
+    requestActionLock.current = true;
     setActionError(null);
     setRetryCancel(false);
     cancel.mutate();
   }
+
+  const totalOfferPages = offers.data
+    ? Math.max(1, offers.data.meta.totalPages ?? Math.ceil((offers.data.meta.total ?? offers.data.items.length) / (offers.data.meta.limit ?? 20)))
+    : 1;
 
   return (
     <div className="space-y-6">
@@ -127,7 +236,92 @@ function WorkRequestDetail({ id }: { id: string }) {
         </dl>
         {isEditing ? <div className="border-t border-line pt-5"><h3 className="mb-4 text-base font-bold text-ink">{t("editTitle")}</h3><WorkRequestForm key={item.id} initialRequest={item} submitLabel={t("saveChanges")} submittingLabel={t("saving")} onSubmit={saveEdits} /><Button type="button" variant="ghost" className="mt-2" onClick={() => setIsEditing(false)}>{t("discardChanges")}</Button></div> : null}
       </section>
-      {!isEditing ? <div className="flex flex-wrap gap-3">{editable ? <Button type="button" variant="outline" onClick={() => setIsEditing(true)}><Pencil aria-hidden="true" />{t("editRequest")}</Button> : null}{canCancelWorkRequest(item.status) ? <Button type="button" variant="destructive" disabled={cancel.isPending} onClick={confirmCancel}><Ban aria-hidden="true" />{cancel.isPending ? t("cancelling") : t("cancelRequest")}</Button> : null}</div> : null}
+      <section className="space-y-4 rounded-2xl border border-line bg-card p-5 shadow-card sm:p-6">
+        <h2 className="text-h3 text-ink">{t("offersTitle")}</h2>
+        {offers.isPending ? (
+          <p aria-live="polite" className="text-sm text-muted-foreground">{t("offersLoading")}</p>
+        ) : offers.isError ? (
+          <div className="flex flex-wrap items-center justify-between gap-3" role="alert">
+            <p className="text-sm text-destructive">{t("offersError")}</p>
+            <Button type="button" size="sm" variant="outline" onClick={() => void offers.refetch()} disabled={offers.isFetching}>{common("retry")}</Button>
+          </div>
+        ) : offers.data.items.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t("offersEmpty")}</p>
+        ) : (
+          <>
+            <div className="space-y-3">
+              {offers.data.items.map((offer) => {
+                const canDecide = item.status === "PUBLISHED" && offer.status === "SUBMITTED";
+                const actionPending = acceptOffer.isPending || rejectOffer.isPending;
+                return (
+                  <article key={offer.id} className="space-y-4 rounded-xl border border-line p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xl font-extrabold text-ink">{formatCurrency(offer.amount, offer.currency, locale)}</p>
+                        <p className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <CalendarClock aria-hidden="true" className="size-3.5 text-brand" />
+                          {t("offerExpires", { date: formatDate(offer.expiresAt, locale) })}
+                        </p>
+                      </div>
+                      <Badge variant={offer.status === "ACCEPTED" ? "success" : offer.status === "REJECTED" || offer.status === "EXPIRED" ? "outline" : "secondary"}>
+                        {t(`offerStatus.${offer.status}`)}
+                      </Badge>
+                    </div>
+                    <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-ink/80">{offer.description}</p>
+                    {canDecide ? (
+                      <div className="flex flex-col gap-2 sm:flex-row">
+                        <Button type="button" className="w-full sm:w-auto" disabled={actionPending} onClick={() => void handleOfferDecision(offer, "accept")}>
+                          <Check aria-hidden="true" />
+                          {t("acceptOffer")}
+                        </Button>
+                        <Button type="button" variant="outline" className="w-full sm:w-auto" disabled={actionPending} onClick={() => void handleOfferDecision(offer, "reject")}>
+                          <X aria-hidden="true" />
+                          {t("rejectOffer")}
+                        </Button>
+                      </div>
+                    ) : null}
+                  </article>
+                );
+              })}
+            </div>
+            {totalOfferPages > 1 ? (
+              <nav aria-label={t("paginationLabel")} className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+                <p className="text-sm text-muted-foreground">{t("pageCount", { page: formatCount(offerPage, locale), total: formatCount(totalOfferPages, locale) })}</p>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" size="sm" disabled={offerPage <= 1 || offers.isFetching} onClick={() => setOfferPage((page) => page - 1)}>{t("previousPage")}</Button>
+                  <Button type="button" variant="outline" size="sm" disabled={offerPage >= totalOfferPages || offers.isFetching} onClick={() => setOfferPage((page) => page + 1)}>{t("nextPage")}</Button>
+                </div>
+              </nav>
+            ) : null}
+          </>
+        )}
+      </section>
+      {!isEditing ? <div className="flex flex-wrap gap-3">{editable ? <Button type="button" variant="outline" onClick={() => setIsEditing(true)}><Pencil aria-hidden="true" />{t("editRequest")}</Button> : null}{item.status === "IN_PROGRESS" ? <Button type="button" disabled={complete.isPending} onClick={handleComplete}>{complete.isPending ? t("completingWork") : t("completeWork")}</Button> : null}{canCancelWorkRequest(item.status) ? <Button type="button" variant="destructive" disabled={cancel.isPending} onClick={confirmCancel}><Ban aria-hidden="true" />{cancel.isPending ? t("cancelling") : t("cancelRequest")}</Button> : null}</div> : null}
+      {item.status === "COMPLETED" ? (
+        <section className="space-y-4 rounded-2xl border border-line bg-card p-5 shadow-card sm:p-6">
+          {reviewSubmitted || reviewAlreadySubmitted ? (
+            <div role="status" className="rounded-xl border border-success/25 bg-success/5 px-4 py-3 text-sm text-ink">
+              {reviewAlreadySubmitted ? t("reviewAlreadySubmitted") : t("reviewSuccess")}
+            </div>
+          ) : (
+            <>
+              <header>
+                <h2 className="text-h3 text-ink">{t("reviewTitle")}</h2>
+                <p className="mt-2 text-sm text-muted-foreground">{t("reviewDescription")}</p>
+              </header>
+              <WorkRequestReviewForm
+                specialtyId={item.specialty.id}
+                submitting={createReview.isPending}
+                submitLabel={t("submitReview")}
+                submittingLabel={t("submittingReview")}
+                validationMessage={t("reviewValidation")}
+                errorMessage={t("reviewError")}
+                onSubmit={(input) => createReview.mutateAsync(input).then(() => undefined)}
+              />
+            </>
+          )}
+        </section>
+      ) : null}
       {actionError ? <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/25 bg-destructive/5 px-4 py-3 text-sm text-destructive"><span>{actionError}</span>{retryCancel ? <Button type="button" variant="link" size="sm" onClick={() => cancel.mutate()}>{common("retry")}</Button> : null}</div> : null}
     </div>
   );

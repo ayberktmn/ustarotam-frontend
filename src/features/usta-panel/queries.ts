@@ -48,6 +48,23 @@ export function useCreateOffer() {
   });
 }
 
+export function useStartWorkRequest() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (requestId: string) =>
+      workshopPanelRepository.startRequest(requestId),
+    onSettled: () => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.workshopPanel.requests,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.workshopPanel.offers,
+      });
+    },
+  });
+}
+
 export function useUpdateOffer() {
   const queryClient = useQueryClient();
 

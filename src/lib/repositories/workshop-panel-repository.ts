@@ -45,6 +45,7 @@ export interface WorkshopPanelRepository {
   listRequests(): Promise<WorkshopPanelRequest[]>;
   listOffers(): Promise<WorkshopPanelOffer[]>;
   createOffer(input: CreateWorkshopOfferInput): Promise<WorkshopPanelOffer>;
+  startRequest(requestId: string): Promise<void>;
   updateOffer(
     offerId: string,
     input: UpdateWorkshopOfferInput,
@@ -96,10 +97,12 @@ function buildOffer(
     id: `off-${Date.now()}`,
     requestId: input.requestId,
     request: {
+      status: request.status,
       vehicleLabel: `${request.vehicle.year} ${request.vehicle.brand} ${request.vehicle.model}`,
       specialty: request.specialty,
       city: request.city,
       district: request.district,
+      address: request.address,
     },
     amount: input.amount,
     currency: input.currency,
@@ -188,6 +191,24 @@ export function createMockWorkshopPanelRepository(): WorkshopPanelRepository {
       offers = [offer, ...offers];
 
       return respond(offer);
+    },
+
+    async startRequest(requestId) {
+      const requestIndex = requests.findIndex((item) => item.id === requestId);
+      const request = requests[requestIndex];
+      if (!request || request.status !== "ASSIGNED") {
+        throw new WorkshopPanelError(
+          "REQUEST_NOT_AVAILABLE",
+          "Work request is not assigned to this workshop.",
+        );
+      }
+
+      requests[requestIndex] = { ...request, status: "IN_PROGRESS" };
+      offers = offers.map((offer) =>
+        offer.requestId === requestId
+          ? { ...offer, request: { ...offer.request, status: "IN_PROGRESS" } }
+          : offer,
+      );
     },
 
     async updateOffer(offerId, input) {

@@ -3,6 +3,7 @@ export const workRequestStatuses = [
   "PUBLISHED",
   "CANCELLED",
   "ASSIGNED",
+  "IN_PROGRESS",
   "COMPLETED",
 ] as const;
 

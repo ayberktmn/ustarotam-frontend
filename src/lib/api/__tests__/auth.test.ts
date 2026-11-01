@@ -72,6 +72,52 @@ it("uses roles from /auth/me instead of trusting roles in the login response", a
   expect(session.user.roles).toEqual(["USER"]);
 });
 
+it("validates the Google refresh session with /auth/me before returning the user", async () => {
+  const authoritativeUser = { ...user, roles: ["USER"] };
+  const { fetchMock, calls } = createFetchMock((_call, index) =>
+    successEnvelope(
+      index === 0
+        ? { user: { ...user, roles: ["ADMIN"] }, accessToken: "google-access" }
+        : authoritativeUser,
+    ),
+  );
+  vi.stubGlobal("fetch", fetchMock);
+  const { authService } = await import("../endpoints/auth");
+  const store = await import("../token-store");
+
+  const result = await authService.completeGoogleLogin();
+
+  expect(result.roles).toEqual(["USER"]);
+  expect(calls.map(({ url }) => url)).toEqual([
+    `${TEST_API_BASE_URL}/auth/refresh`,
+    `${TEST_API_BASE_URL}/auth/me`,
+  ]);
+  expect(calls[0].init.credentials).toBe("include");
+  expect(new Headers(calls[1].init.headers).get("Authorization")).toBe(
+    "Bearer google-access",
+  );
+  expect(store.getAccessToken()).toBe("google-access");
+});
+
+it("clears the Google access token and rejects when /auth/me denies the session", async () => {
+  const { fetchMock } = createFetchMock((_call, index) =>
+    index === 0
+      ? successEnvelope({ user, accessToken: "unverified-google-access" })
+      : index === 1 || index === 3
+        ? failureResponse(401, { code: "INVALID_ACCESS_TOKEN" })
+        : successEnvelope({ accessToken: "retry-google-access" }),
+  );
+  vi.stubGlobal("fetch", fetchMock);
+  const { authService } = await import("../endpoints/auth");
+  const store = await import("../token-store");
+
+  await expect(authService.completeGoogleLogin()).rejects.toMatchObject({
+    code: "GOOGLE_OAUTH_SESSION_MISSING",
+  });
+  expect(store.getAccessToken()).toBeNull();
+  expect(fetchMock).toHaveBeenCalledTimes(4);
+});
+
 it.each([[403, "EMAIL_NOT_VERIFIED"], [401, "INVALID_CREDENTIALS"], [429, "AUTH_RATE_LIMITED"], [503, "AUTH_NOT_CONFIGURED"]])("preserves login error %s without refreshing", async (status, code) => {
   const { fetchMock } = createFetchMock(() => failureResponse(status as number, {code: code as string}));
   vi.stubGlobal("fetch", fetchMock);
@@ -221,4 +267,3 @@ it("broadcasts only a logout signal to other tabs", async () => {
   expect(postMessage).toHaveBeenCalledExactlyOnceWith("logout");
   expect(close).toHaveBeenCalledTimes(1);
 });
-

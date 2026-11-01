@@ -14,7 +14,14 @@ const applicationDocumentsPath = new RegExp(`^workshop-applications/${applicatio
 const applicationDocumentReadPath = new RegExp(`^workshop-applications/${applicationId}/documents/${applicationId}$`);
 const workRequestPath = new RegExp(`^work-requests(?:/mine|/${workRequestId})?$`);
 const workRequestCancelPath = new RegExp(`^work-requests/${workRequestId}/cancel$`);
+const workRequestActionPath = new RegExp(`^work-requests/${workRequestId}/(cancel|start|complete|review)$`);
+const workRequestOffersPath = new RegExp(`^work-requests/${workRequestId}/offers$`);
 const workRequestDetailPath = new RegExp(`^work-requests/${workRequestId}$`);
+const workOfferReadPath = new RegExp(`^work-offers/(?:matching|mine|${workRequestId})$`);
+const workOfferActionPath = new RegExp(`^work-offers/${workRequestId}/(accept|reject|withdraw)$`);
+const workOfferCreateAliasPath = new RegExp(`^work-offers/requests/${workRequestId}$`);
+const workOfferUpdatePath = new RegExp(`^work-offers/${workRequestId}$`);
+const googleStartPath = "auth/google/start";
 const workshopLogoReadPath = new RegExp(`^workshops/${workRequestId}/logo$`);
 const documentMimeTypes = new Set([PDF_MIME, DOCX_MIME]);
 const logoMimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -84,9 +91,9 @@ function requestOrigin(request: Request): string | null {
 function allowedPath(path: string, method: string): boolean {
   if (path === "workshops/mine/logo") return method === "PUT" || method === "DELETE";
   if (path === "workshops/mine/service-areas") return method === "GET" || method === "PUT";
-  if (method === "POST" && (path === "work-requests" || workRequestCancelPath.test(path) || path === "workshop-applications" || path === "workshop-applications/drafts" || /^workshop-applications\/[a-zA-Z0-9_-]{1,128}\/submit$/.test(path) || documentUploadPath.test(path))) return true;
-  if (method === "GET" && (path === "workshop-applications/mine" || applicationDocumentsPath.test(path) || applicationDocumentReadPath.test(path) || workshopLogoReadPath.test(path))) return true;
-  if (method === "PATCH") return path === "auth/me" || workRequestDetailPath.test(path) || /^workshops\/[a-zA-Z0-9-]+$/.test(path) || /^workshop-applications\/[a-zA-Z0-9_-]{1,128}$/.test(path);
+  if (method === "POST" && (path === "work-requests" || workRequestActionPath.test(path) || workRequestOffersPath.test(path) || workOfferActionPath.test(path) || workOfferCreateAliasPath.test(path) || path === "workshop-applications" || path === "workshop-applications/drafts" || /^workshop-applications\/[a-zA-Z0-9_-]{1,128}\/submit$/.test(path) || documentUploadPath.test(path))) return true;
+  if (method === "GET" && (path === googleStartPath || path === "workshop-applications/mine" || applicationDocumentsPath.test(path) || applicationDocumentReadPath.test(path) || workshopLogoReadPath.test(path) || workRequestOffersPath.test(path) || workOfferReadPath.test(path))) return true;
+  if (method === "PATCH") return path === "auth/me" || workRequestDetailPath.test(path) || workOfferUpdatePath.test(path) || /^workshops\/[a-zA-Z0-9-]+$/.test(path) || /^workshop-applications\/[a-zA-Z0-9_-]{1,128}$/.test(path);
   if (method === "POST") return /^auth\/(login|register|refresh|logout|email-verification\/(resend|confirm)|password-reset\/(request|confirm))$/.test(path);
   if (method !== "GET") return false;
   return path === "health" || path === "auth/me" || workRequestPath.test(path) || /^(locations\/provinces|specialties|vehicles\/(types|brands|models)|workshops)$/.test(path) ||
@@ -190,6 +197,21 @@ export async function localGateway(request: Request, segments: string[]): Promis
   if (segments.some(segment => !/^[a-zA-Z0-9_-]+$/.test(segment))) return failure(404, "NOT_FOUND");
   const path = segments.join("/");
   if (!allowedPath(path, request.method)) return failure(404, "NOT_FOUND");
+  if (path === googleStartPath) {
+    const modes = incoming.searchParams.getAll("mode");
+    const hasUnknownParameters = [...incoming.searchParams.keys()].some((key) => key !== "mode");
+    const mode = modes[0] ?? "login";
+    if (hasUnknownParameters || modes.length > 1 || !["login", "register"].includes(mode)) {
+      return failure(400, "INVALID_OAUTH_MODE");
+    }
+
+    const destination = new URL(`${target.origin}/api/v1/auth/google/start`);
+    destination.searchParams.set("mode", mode);
+    return new Response(null, {
+      status: 302,
+      headers: { Location: destination.toString(), "Cache-Control": "no-store" },
+    });
+  }
   const isDocumentUpload = request.method === "POST" && documentUploadPath.test(path);
   const isLogoUpload = request.method === "PUT" && path === "workshops/mine/logo";
   let body: string | ArrayBuffer | undefined;
@@ -213,6 +235,9 @@ export async function localGateway(request: Request, segments: string[]): Promis
     headers.set("Authorization", protectedListAuthorization);
   }
   const authorization = request.headers.get("authorization");
+  if ((workRequestActionPath.test(path) || workRequestOffersPath.test(path) || workOfferReadPath.test(path) || workOfferActionPath.test(path) || workOfferCreateAliasPath.test(path) || workOfferUpdatePath.test(path)) && authorization && /^Bearer \S+$/.test(authorization)) {
+    headers.set("Authorization", authorization);
+  }
   if ((workRequestPath.test(path) || workRequestCancelPath.test(path) || path === "auth/me" || path === "workshop-applications" || path.startsWith("workshop-applications/") || path.startsWith("workshops/mine") || /^workshops\/[a-zA-Z0-9-]+$/.test(path)) && authorization?.match(/^Bearer [A-Za-z0-9_.-]+$/)) headers.set("Authorization", authorization);
   // Construct path from validated segments, never from a caller-supplied URL.
   const url = `${target.origin}/api/v1/${path}${incoming.search}`;

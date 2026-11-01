@@ -119,6 +119,12 @@ function JobCard({
             {panelText(request.description, locale)}
           </p>
         ) : null}
+        {request.status !== "PUBLISHED" && request.address ? (
+          <p className="mt-3 break-words text-sm text-ink/80">
+            <span className="font-semibold">{t("jobs.address")}: </span>
+            {request.address}
+          </p>
+        ) : null}
         <p className="mt-3 flex items-start gap-1.5 text-xs text-muted-foreground">
           <ShieldCheck
             aria-hidden="true"

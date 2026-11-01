@@ -24,6 +24,7 @@ export const REQUEST_STATUS_VARIANT: Record<
   PUBLISHED: "success",
   CANCELLED: "destructive",
   ASSIGNED: "secondary",
+  IN_PROGRESS: "secondary",
   COMPLETED: "outline",
 };
 

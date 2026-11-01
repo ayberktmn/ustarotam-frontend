@@ -21,10 +21,11 @@ describe("workshop panel API repository", () => {
       id: "request-1", description: "Fren arızası", status: "PUBLISHED",
       vehicleType: { id: "type-1", name: "Otomobil", slug: "otomobil" }, vehicleBrand: null, vehicleModel: null,
       specialty: { id: "specialty-1", name: "Fren", slug: "fren" }, province: { id: "province-1", name: "Ankara", slug: "ankara" }, district: { id: "district-1", name: "Çankaya", slug: "cankaya" }, _count: { photos: 2 },
+      address: "Örnek adres",
     };
     const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.includes("/work-offers/matching?")) {
+      if (url.includes("/work-requests?")) {
         const page = new URL(url).searchParams.get("page");
         return page === "2"
           ? envelope([{ ...request, id: "request-2", description: null, _count: null }], { meta: { page: 2, limit: 20, total: 2, totalPages: 2 } })

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { CalendarClock, MapPin, MessageSquareText } from "lucide-react";
 import { toast } from "sonner";
@@ -16,6 +16,7 @@ import {
 import { ErrorState } from "@/components/ui/error-state";
 import {
   usePanelOffers,
+  useStartWorkRequest,
   useUpdateOffer,
   useWithdrawOffer,
 } from "@/features/usta-panel/queries";
@@ -61,6 +62,7 @@ function OffersView() {
   const t = useTranslations("workshopPanel");
   const locale = useLocale() as Locale;
   const offers = usePanelOffers();
+  const startWork = useStartWorkRequest();
   const updateOffer = useUpdateOffer();
   const withdrawOffer = useWithdrawOffer();
   const [filter, setFilter] = useState<OfferFilter>("all");
@@ -68,6 +70,7 @@ function OffersView() {
   const [confirmingOfferId, setConfirmingOfferId] = useState<string | null>(
     null,
   );
+  const startingRequest = useRef(false);
 
   if (offers.isPending) {
     return <OffersSkeleton />;
@@ -129,6 +132,25 @@ function OffersView() {
       setConfirmingOfferId(null);
     } catch {
       toast.error(t("offers.errors.generic"));
+    }
+  }
+
+  async function handleStart(offer: WorkshopPanelOffer) {
+    if (
+      startingRequest.current ||
+      !window.confirm(t("offers.startConfirm"))
+    ) {
+      return;
+    }
+
+    startingRequest.current = true;
+    try {
+      await startWork.mutateAsync(offer.requestId);
+      toast.success(t("jobs.jobStarted"));
+    } catch {
+      toast.error(t("jobs.startError"));
+    } finally {
+      startingRequest.current = false;
     }
   }
 
@@ -242,6 +264,34 @@ function OffersView() {
                     {offer.description}
                   </p>
 
+                  {offer.status === "ACCEPTED" && offer.request.status ? (
+                    <p className="mt-4 rounded-xl border border-brand/20 bg-brand-soft/30 px-4 py-3 text-sm text-ink/80">
+                      {t(`jobs.requestStatus.${offer.request.status}`)}
+                    </p>
+                  ) : null}
+                  {offer.request.status &&
+                  ["ASSIGNED", "IN_PROGRESS", "COMPLETED"].includes(
+                    offer.request.status,
+                  ) &&
+                  offer.request.address ? (
+                    <p className="mt-3 break-words text-sm text-ink/80">
+                      <span className="font-semibold">{t("jobs.address")}: </span>
+                      {offer.request.address}
+                    </p>
+                  ) : null}
+                  {status === "ACCEPTED" &&
+                  offer.request.status === "ASSIGNED" ? (
+                    <Button
+                      type="button"
+                      className="mt-4 w-full sm:w-auto"
+                      disabled={startWork.isPending}
+                      onClick={() => void handleStart(offer)}
+                    >
+                      {startWork.isPending
+                        ? t("jobs.startingJob")
+                        : t("jobs.startJob")}
+                    </Button>
+                  ) : null}
                   {status === "ACCEPTED" ? (
                     <p className="mt-4 rounded-xl border border-success/25 bg-success/5 px-4 py-3 text-sm text-ink/80">
                       {t("offers.acceptedNote")}

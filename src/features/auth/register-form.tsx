@@ -19,6 +19,7 @@ import { RegistrationSuccess } from "./registration-success";
 import { getApiErrorMessageKey } from "@/lib/toast/api-error-key";
 import { ApiError } from "@/lib/api/errors";
 import { LegalDialog } from "./legal-dialog";
+import { GoogleOAuthButton } from "./google-oauth-button";
 
 interface FieldErrors {
   firstName?: string;
@@ -319,6 +320,8 @@ function RegisterForm() {
         </Button>
         </fieldset>
       </form>
+
+      <GoogleOAuthButton mode="register" />
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         {t("haveAccount")}{" "}

@@ -221,6 +221,27 @@ export const authService = {
       throw error;
     }
   },
+
+  async completeGoogleLogin(): Promise<AuthUser> {
+    beginSession();
+    try {
+      const user = await this.refreshSession();
+      if (!user) {
+        throw new ApiError({
+          kind: "auth",
+          status: 401,
+          code: "GOOGLE_OAUTH_SESSION_MISSING",
+          message: "Google OAuth did not establish a session.",
+          retryable: false,
+        });
+      }
+
+      return user;
+    } catch (error) {
+      clearAccessToken();
+      throw error;
+    }
+  },
 };
 
 export async function bootstrapSession(): Promise<AuthUser | null> {

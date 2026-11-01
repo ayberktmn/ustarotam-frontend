@@ -3,6 +3,8 @@ import { z } from "zod";
 import type { ApiRequestFn } from "@/lib/api/client";
 import { apiSuccessSchema, idSchema, paginationMetaSchema } from "@/lib/api/schemas";
 import type { PagedResult } from "@/types/api";
+import type { CreateReviewInput } from "@/types/review";
+import type { WorkOffer, CreateWorkOfferInput } from "@/types/work-offer";
 import {
   workRequestStatuses,
   type CreateWorkRequestInput,
@@ -12,6 +14,7 @@ import {
   type WorkRequestSpecialty,
   type WorkRequestStatus,
 } from "@/types/work-request";
+import { ownedReviewSchema } from "@/lib/api/endpoints/reviews";
 
 const statusSchema = z.enum(workRequestStatuses);
 const catalogItemBaseSchema = z.object({
@@ -61,6 +64,34 @@ const workRequestEnvelope = apiSuccessSchema(workRequestSchema);
 const workRequestListEnvelope = z.object({
   success: z.literal(true),
   data: z.array(workRequestSchema),
+  meta: paginationMetaSchema,
+}).strict();
+const workOfferRequestSchema = z.object({
+  id: idSchema,
+  status: statusSchema,
+  vehicleType: catalogItemSchema,
+  vehicleBrand: catalogItemSchema.nullable(),
+  vehicleModel: catalogItemSchema.nullable(),
+  specialty: specialtySchema,
+  province: catalogItemSchema,
+  district: catalogItemSchema,
+  address: z.string(),
+}).passthrough();
+const workOfferSchema: z.ZodType<WorkOffer> = z.object({
+  id: idSchema,
+  requestId: idSchema,
+  amount: z.coerce.number().finite().positive(),
+  currency: z.enum(["TRY", "EUR", "USD"]),
+  description: z.string(),
+  expiresAt: z.coerce.string(),
+  status: z.enum(["SUBMITTED", "WITHDRAWN", "REJECTED", "ACCEPTED", "EXPIRED"]),
+  createdAt: z.coerce.string(),
+  updatedAt: z.coerce.string(),
+  request: workOfferRequestSchema,
+}).passthrough();
+const workOfferListEnvelope = z.object({
+  success: z.literal(true),
+  data: z.array(workOfferSchema),
   meta: paginationMetaSchema,
 }).strict();
 
@@ -124,6 +155,89 @@ export function createWorkRequestService(request: ApiRequestFn) {
         path: `/work-requests/${encodeURIComponent(id)}/cancel`,
         method: "POST",
         schema: workRequestEnvelope,
+        responseMode: "raw",
+        auth: "required",
+        retries: 0,
+      }).then((payload) => payload.data);
+    },
+
+    start(id: string): Promise<WorkRequest> {
+      return request({
+        path: `/work-requests/${encodeURIComponent(id)}/start`,
+        method: "POST",
+        schema: workRequestEnvelope,
+        responseMode: "raw",
+        auth: "required",
+        retries: 0,
+      }).then((payload) => payload.data);
+    },
+
+    complete(id: string): Promise<WorkRequest> {
+      return request({
+        path: `/work-requests/${encodeURIComponent(id)}/complete`,
+        method: "POST",
+        schema: workRequestEnvelope,
+        responseMode: "raw",
+        auth: "required",
+        retries: 0,
+      }).then((payload) => payload.data);
+    },
+
+    listOffers(
+      id: string,
+      query: { page?: number; limit?: number } = {},
+    ): Promise<PagedResult<WorkOffer>> {
+      return request({
+        path: `/work-requests/${encodeURIComponent(id)}/offers`,
+        query: { page: query.page ?? 1, limit: query.limit ?? 20 },
+        schema: workOfferListEnvelope,
+        responseMode: "raw",
+        auth: "required",
+        retries: 0,
+      }).then((payload) => ({ items: payload.data, meta: payload.meta }));
+    },
+
+    acceptOffer(id: string): Promise<void> {
+      return request({
+        path: `/work-offers/${encodeURIComponent(id)}/accept`,
+        method: "POST",
+        schema: z.void(),
+        auth: "required",
+        retries: 0,
+      });
+    },
+
+    rejectOffer(id: string): Promise<void> {
+      return request({
+        path: `/work-offers/${encodeURIComponent(id)}/reject`,
+        method: "POST",
+        schema: z.void(),
+        auth: "required",
+        retries: 0,
+      });
+    },
+
+    createOffer(
+      requestId: string,
+      input: CreateWorkOfferInput,
+    ): Promise<WorkOffer> {
+      return request({
+        path: `/work-requests/${encodeURIComponent(requestId)}/offers`,
+        method: "POST",
+        body: input,
+        schema: apiSuccessSchema(workOfferSchema),
+        responseMode: "raw",
+        auth: "required",
+        retries: 0,
+      }).then((payload) => payload.data);
+    },
+
+    createReview(id: string, input: CreateReviewInput) {
+      return request({
+        path: `/work-requests/${encodeURIComponent(id)}/review`,
+        method: "POST",
+        body: input,
+        schema: apiSuccessSchema(ownedReviewSchema),
         responseMode: "raw",
         auth: "required",
         retries: 0,

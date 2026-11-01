@@ -30,6 +30,7 @@ export interface CreateReviewInput {
   overallRating: 1 | 2 | 3 | 4 | 5;
   serviceDescription: string;
   serviceDate: string;
+  amountPaid?: number | null;
   resolutionStatus: ReviewResolutionStatus;
   comment: string;
   specialtyRatings: ReviewSpecialtyRating[];

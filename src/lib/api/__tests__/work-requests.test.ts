@@ -39,6 +39,29 @@ const input = {
   address: row.address,
   description: row.description,
 };
+const offerId = "10000000-0000-4000-8000-000000000010";
+const offer = {
+  id: offerId,
+  requestId,
+  amount: 2500,
+  currency: "TRY",
+  description: "Parts and labor included",
+  expiresAt: "2026-11-08T09:00:00.000Z",
+  status: "SUBMITTED",
+  createdAt: "2026-10-29T12:00:00.000Z",
+  updatedAt: "2026-10-29T12:00:00.000Z",
+  request: {
+    id: requestId,
+    status: "PUBLISHED",
+    vehicleType: item(ids.vehicleType, "Car"),
+    vehicleBrand: null,
+    vehicleModel: null,
+    specialty: { ...item(ids.specialty, "Engine"), description: null },
+    province: item(ids.province, "Ankara"),
+    district: item(ids.district, "Cankaya"),
+    address: "123 Main Street",
+  },
+};
 
 afterEach(() => {
   clearAccessToken();
@@ -171,5 +194,114 @@ describe("customer work request API contracts", () => {
     await expect(createWorkRequestService(browserRequest).cancel(requestId))
       .rejects.toMatchObject({ status, code: "WORK_REQUEST_NOT_CANCELLABLE" });
     expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it("uses the canonical offer and assigned-work lifecycle endpoints", async () => {
+    const requestMock = vi.fn(async (options: Parameters<ApiRequestFn>[0]) => {
+      if (options.path.endsWith("/offers") && options.method !== "POST") {
+        return options.schema.parse({
+          success: true,
+          data: [offer],
+          meta: { page: 1, limit: 20, total: 1, totalPages: 1 },
+        });
+      }
+      if (options.path.endsWith("/offers")) {
+        return options.schema.parse({ success: true, data: offer });
+      }
+      if (options.path.endsWith("/start")) {
+        return options.schema.parse({
+          success: true,
+          data: { ...row, status: "IN_PROGRESS" },
+        });
+      }
+      if (options.path.endsWith("/complete")) {
+        return options.schema.parse({
+          success: true,
+          data: { ...row, status: "COMPLETED" },
+        });
+      }
+      return options.schema.parse(undefined);
+    });
+    const request = requestMock as ApiRequestFn & typeof requestMock;
+    const service = createWorkRequestService(request);
+    const offerInput = {
+      amount: offer.amount,
+      currency: "TRY" as const,
+      description: offer.description,
+      expiresAt: offer.expiresAt,
+    };
+
+    await expect(service.listOffers(requestId)).resolves.toMatchObject({
+      items: [offer],
+      meta: { page: 1, total: 1 },
+    });
+    await service.createOffer(requestId, offerInput);
+    await service.acceptOffer(offerId);
+    await service.rejectOffer(offerId);
+    await expect(service.start(requestId)).resolves.toMatchObject({
+      status: "IN_PROGRESS",
+    });
+    await expect(service.complete(requestId)).resolves.toMatchObject({
+      status: "COMPLETED",
+    });
+
+    expect(requestMock.mock.calls.map(([options]) => [options.path, options.method])).toEqual([
+      [`/work-requests/${requestId}/offers`, undefined],
+      [`/work-requests/${requestId}/offers`, "POST"],
+      [`/work-offers/${offerId}/accept`, "POST"],
+      [`/work-offers/${offerId}/reject`, "POST"],
+      [`/work-requests/${requestId}/start`, "POST"],
+      [`/work-requests/${requestId}/complete`, "POST"],
+    ]);
+    expect(request).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      body: offerInput,
+      auth: "required",
+      retries: 0,
+    }));
+  });
+
+  it("submits a completed-work review without a service verification id", async () => {
+    const reviewInput = {
+      overallRating: 5 as const,
+      serviceDescription: "Engine fault repaired",
+      serviceDate: "2026-10-29T12:00:00.000Z",
+      amountPaid: 2500,
+      resolutionStatus: "YES" as const,
+      comment: "The service was completed on time",
+      specialtyRatings: [{ specialtyId: ids.specialty, rating: 5 as const }],
+    };
+    const review = {
+      id: "10000000-0000-4000-8000-000000000020",
+      workshopId: "10000000-0000-4000-8000-000000000021",
+      overallRating: 5,
+      comment: reviewInput.comment,
+      createdAt: reviewInput.serviceDate,
+      serviceDescription: reviewInput.serviceDescription,
+      serviceDate: reviewInput.serviceDate,
+      resolutionStatus: reviewInput.resolutionStatus,
+      verificationStatus: "VERIFIED",
+      moderationStatus: "PENDING",
+      author: { firstName: "Example", lastName: "Customer" },
+      specialtyRatings: [{
+        rating: 5,
+        specialty: { id: ids.specialty, name: "Engine", slug: "engine" },
+      }],
+      serviceVerificationId: "10000000-0000-4000-8000-000000000022",
+    };
+    const requestMock = vi.fn(async (options: Parameters<ApiRequestFn>[0]) =>
+      options.schema.parse({ success: true, data: review }),
+    );
+    const request = requestMock as ApiRequestFn & typeof requestMock;
+
+    await createWorkRequestService(request).createReview(requestId, reviewInput);
+
+    expect(request).toHaveBeenCalledWith(expect.objectContaining({
+      path: `/work-requests/${requestId}/review`,
+      method: "POST",
+      body: reviewInput,
+      auth: "required",
+      retries: 0,
+    }));
+    expect(requestMock.mock.calls[0][0].body).not.toHaveProperty("serviceVerificationId");
   });
 });

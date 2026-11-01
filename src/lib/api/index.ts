@@ -12,6 +12,11 @@ export type {
   WorkRequestListQuery,
 } from "@/lib/api/endpoints/work-requests";
 export type {
+  CreateWorkOfferInput,
+  WorkOffer,
+  WorkOfferStatus,
+} from "@/types/work-offer";
+export type {
   CreateWorkRequestInput,
   UpdateWorkRequestInput,
   WorkRequest,

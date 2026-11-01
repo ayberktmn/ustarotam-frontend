@@ -18,6 +18,7 @@ import { ApiError } from "@/lib/api/errors";
 
 import { emailIsValid } from "./registration-validation";
 import { authPanelPath } from "./panel-path";
+import { GoogleOAuthButton } from "./google-oauth-button";
 import { getApiErrorMessageKey } from "@/lib/toast/api-error-key";
 
 interface FieldErrors {
@@ -200,6 +201,8 @@ function LoginForm() {
         </Button>
         </fieldset>
       </form>
+
+      <GoogleOAuthButton mode="login" />
 
       {emailNotVerified ? (
         <div role="status" className="mt-5 rounded-xl border border-brand/25 bg-brand-soft p-4 text-sm text-ink">

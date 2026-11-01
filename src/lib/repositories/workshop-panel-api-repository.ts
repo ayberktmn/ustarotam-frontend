@@ -2,16 +2,14 @@ import { z } from "zod";
 
 import { browserRequest } from "@/lib/api/client";
 import { createReviewService } from "@/lib/api/endpoints/reviews";
+import { createWorkRequestService } from "@/lib/api/endpoints/work-requests";
 import { createWorkshopService } from "@/lib/api/endpoints/workshops";
 import { apiWorkshopLogoSchema } from "@/lib/api/schemas";
 import type { WorkshopPanelRepository } from "@/lib/repositories/workshop-panel-repository";
 import type {
-  OfferCurrency,
   PanelNotificationType,
   PanelRoute,
   PanelVerificationStatus,
-  WorkOfferStatus,
-  WorkRequestStatus,
   WorkshopPanelConversation,
   WorkshopPanelMessage,
   WorkshopPanelNotification,
@@ -22,23 +20,36 @@ import type {
 
 const localized = (value: string) => ({ tr: value, en: value });
 const panelReviewService = createReviewService(browserRequest);
+const panelWorkRequestService = createWorkRequestService(browserRequest);
 const panelWorkshopService = createWorkshopService(browserRequest);
 const paginationSchema = z.object({ page: z.number().int().positive(), limit: z.number().int().positive(), total: z.number().int().nonnegative(), totalPages: z.number().int().nonnegative() });
 const paged = <T extends z.ZodTypeAny>(item: T) => z.object({ success: z.literal(true), data: z.array(item), meta: z.record(z.string(), z.unknown()).optional() });
 const entity = <T extends z.ZodTypeAny>(item: T) => z.object({ success: z.literal(true), data: item });
 
 const requestSchema = z.object({
-  id: z.string(), description: z.string().nullable().optional(), status: z.string(), createdAt: z.coerce.string().nullable().optional(),
+  id: z.string(), description: z.string().nullable().optional(), status: z.enum(["DRAFT", "PUBLISHED", "CANCELLED", "ASSIGNED", "IN_PROGRESS", "COMPLETED"]), createdAt: z.coerce.string().nullable().optional(),
   vehicleType: z.object({ name: z.string() }), vehicleBrand: z.object({ name: z.string() }).nullable().optional(),
   vehicleModel: z.object({ name: z.string() }).nullable().optional(), specialty: z.object({ name: z.string() }),
   province: z.object({ name: z.string() }), district: z.object({ name: z.string() }),
+  address: z.string().optional(), photoCount: z.number().int().nonnegative().optional(),
   _count: z.object({ photos: z.number() }).nullable().optional(),
 });
 const matchingPaged = z.object({ success: z.literal(true), data: z.array(requestSchema), meta: paginationSchema });
+const offerRequestSchema = z.object({
+  id: z.string(),
+  status: requestSchema.shape.status,
+  vehicleType: z.object({ name: z.string() }),
+  vehicleBrand: z.object({ name: z.string() }).nullable(),
+  vehicleModel: z.object({ name: z.string() }).nullable(),
+  specialty: z.object({ name: z.string() }),
+  province: z.object({ name: z.string() }),
+  district: z.object({ name: z.string() }),
+  address: z.string(),
+});
 
 const offerSchema = z.object({
-  id: z.string(), requestId: z.string(), amount: z.coerce.number(), currency: z.string(), description: z.string(),
-  expiresAt: z.coerce.string(), status: z.string(), createdAt: z.coerce.string(), updatedAt: z.coerce.string(), request: requestSchema,
+  id: z.string(), requestId: z.string(), amount: z.coerce.number(), currency: z.enum(["TRY", "EUR", "USD"]), description: z.string(),
+  expiresAt: z.coerce.string(), status: z.enum(["SUBMITTED", "WITHDRAWN", "REJECTED", "ACCEPTED", "EXPIRED"]), createdAt: z.coerce.string(), updatedAt: z.coerce.string(), request: offerRequestSchema,
 });
 
 const conversationSchema = z.object({
@@ -62,11 +73,11 @@ const profileSchema = z.object({
 });
 
 function mapRequest(row: z.infer<typeof requestSchema>): WorkshopPanelRequest {
-  return { id: row.id, vehicle: { type: localized(row.vehicleType.name), brand: row.vehicleBrand?.name ?? "", model: row.vehicleModel?.name ?? "", year: 0, fuel: localized("") }, specialty: localized(row.specialty.name), city: row.province.name, district: row.district.name, distanceKm: null, description: localized(row.description ?? ""), photoCount: row._count?.photos ?? 0, budget: null, status: row.status as WorkRequestStatus, createdAt: row.createdAt ?? "" };
+  return { id: row.id, vehicle: { type: localized(row.vehicleType.name), brand: row.vehicleBrand?.name ?? "", model: row.vehicleModel?.name ?? "", year: 0, fuel: localized("") }, specialty: localized(row.specialty.name), city: row.province.name, district: row.district.name, address: row.address, distanceKm: null, description: localized(row.description ?? ""), photoCount: row.photoCount ?? row._count?.photos ?? 0, budget: null, status: row.status, createdAt: row.createdAt ?? "" };
 }
 
 function mapOffer(row: z.infer<typeof offerSchema>): WorkshopPanelOffer {
-  return { id: row.id, requestId: row.requestId, request: { vehicleLabel: [row.request.vehicleBrand?.name, row.request.vehicleModel?.name].filter(Boolean).join(" "), specialty: localized(row.request.specialty.name), city: row.request.province.name, district: row.request.district.name }, amount: row.amount, currency: row.currency as OfferCurrency, description: row.description, expiresAt: row.expiresAt, status: row.status as WorkOfferStatus, createdAt: row.createdAt, updatedAt: row.updatedAt };
+  return { id: row.id, requestId: row.requestId, request: { status: row.request.status, vehicleLabel: [row.request.vehicleBrand?.name, row.request.vehicleModel?.name].filter(Boolean).join(" ") || row.request.vehicleType.name, specialty: localized(row.request.specialty.name), city: row.request.province.name, district: row.request.district.name, address: row.request.address }, amount: row.amount, currency: row.currency, description: row.description, expiresAt: row.expiresAt, status: row.status, createdAt: row.createdAt, updatedAt: row.updatedAt };
 }
 
 function mapConversation(row: z.infer<typeof conversationSchema>): WorkshopPanelConversation {
@@ -87,13 +98,14 @@ function mapNotification(row: z.infer<typeof notificationSchema>): WorkshopPanel
 export function createApiWorkshopPanelRepository(): WorkshopPanelRepository {
   return {
     async listRequests() {
-      const getPage = (page: number) => browserRequest({ path: "/work-offers/matching", query: { page, limit: 20 }, schema: matchingPaged, responseMode: "raw", auth: "required" });
+      const getPage = (page: number) => browserRequest({ path: "/work-requests", query: { page, limit: 20 }, schema: matchingPaged, responseMode: "raw", auth: "required" });
       const first = await getPage(1);
       const remaining = await Promise.all(Array.from({ length: Math.max(0, first.meta.totalPages - 1) }, (_, index) => getPage(index + 2)));
       return [first, ...remaining].flatMap((response) => response.data).map(mapRequest);
     },
     async listOffers() { const response = await browserRequest({ path: "/work-offers/mine", schema: paged(offerSchema), responseMode: "raw", auth: "required" }); return response.data.map(mapOffer); },
-    async createOffer(input) { const row = await browserRequest({ path: `/work-offers/requests/${encodeURIComponent(input.requestId)}`, method: "POST", body: input, schema: offerSchema, auth: "required", retries: 0 }); return mapOffer(row); },
+    async createOffer(input) { const { requestId, ...body } = input; const row = await browserRequest({ path: `/work-requests/${encodeURIComponent(requestId)}/offers`, method: "POST", body, schema: offerSchema, auth: "required", retries: 0 }); return mapOffer(row); },
+    async startRequest(requestId) { await panelWorkRequestService.start(requestId); },
     async updateOffer(offerId, input) { await browserRequest({ path: `/work-offers/${encodeURIComponent(offerId)}`, method: "PATCH", body: input, schema: z.void(), auth: "required", retries: 0 }); const offers = await this.listOffers(); const updated = offers.find(({ id }) => id === offerId); if (!updated) throw new Error("Updated offer was not returned by the API."); return updated; },
     async withdrawOffer(offerId) { await browserRequest({ path: `/work-offers/${encodeURIComponent(offerId)}/withdraw`, method: "POST", schema: z.void(), auth: "required", retries: 0 }); },
     async listConversations() { const response = await browserRequest({ path: "/conversations", schema: paged(conversationSchema), responseMode: "raw", auth: "required" }); return response.data.map(mapConversation); },

@@ -85,3 +85,63 @@ it("preserves cancellation conflicts", async () => {
   expect(response.status).toBe(409);
   expect(await response.json()).toEqual(failure);
 });
+
+it.each([
+  [`work-requests/${id}/offers`, "GET"],
+  [`work-requests/${id}/offers`, "POST"],
+  [`work-requests/${id}/start`, "POST"],
+  [`work-requests/${id}/complete`, "POST"],
+  [`work-requests/${id}/review`, "POST"],
+  ["work-offers/mine", "GET"],
+  [`work-offers/${id}/accept`, "POST"],
+  [`work-offers/${id}/reject`, "POST"],
+])("forwards the verified request/offer endpoint %s %s", async (path, method) => {
+  const headers = {
+    host: "localhost:3000",
+    origin,
+    authorization: "Bearer test-access-token",
+  };
+  const hasOfferBody = method === "POST" && path.endsWith("/offers");
+  const fetchMock = vi.fn().mockResolvedValue(
+    method === "POST" && !hasOfferBody
+      ? new Response(null, { status: 204 })
+      : Response.json({ success: true, data: [] }),
+  );
+  vi.stubGlobal("fetch", fetchMock);
+  const incoming = new Request(`${origin}/api/local/${path}`, {
+    method,
+    headers: hasOfferBody ? { ...headers, "content-type": "application/json" } : headers,
+    ...(hasOfferBody
+      ? {
+          body: JSON.stringify({
+            amount: 2500,
+            currency: "TRY",
+            description: "Parts and labor included",
+            expiresAt: "2026-11-08T09:00:00.000Z",
+          }),
+        }
+      : {}),
+  });
+
+  const response = await localGateway(incoming, path.split("/"));
+
+  expect(response.status).toBe(method === "POST" && !hasOfferBody ? 204 : 200);
+  expect(fetchMock.mock.calls[0][0]).toBe(`${upstream}/${path}`);
+  expect(fetchMock.mock.calls[0][1].headers.get("authorization")).toBe(
+    "Bearer test-access-token",
+  );
+});
+
+it("redirects Google OAuth start to the configured API without exposing credentials", async () => {
+  const response = await localGateway(
+    new Request(`${origin}/api/local/auth/google/start?mode=register`, {
+      headers: { host: "localhost:3000", origin },
+    }),
+    ["auth", "google", "start"],
+  );
+
+  expect(response.status).toBe(302);
+  expect(response.headers.get("location")).toBe(
+    `${upstream}/auth/google/start?mode=register`,
+  );
+});

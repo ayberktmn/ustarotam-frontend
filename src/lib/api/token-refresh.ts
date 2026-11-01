@@ -16,11 +16,14 @@ import {
 } from "@/lib/api/failure";
 import { createRequestId } from "@/lib/api/request-id";
 import { apiSuccessSchema } from "@/lib/api/schemas";
+import { apiUserSchema } from "@/lib/api/schemas";
 import { clearAccessToken, setAccessToken, getSessionSignal, isSignedOut } from "@/lib/api/token-store";
+import type { AuthUser } from "@/types/auth";
 
 const refreshPayloadSchema = z
   .object({
     accessToken: z.string().min(1).optional(),
+    user: apiUserSchema.optional(),
   })
   .passthrough();
 
@@ -33,7 +36,7 @@ const EXPIRED_REFRESH_CODES: ReadonlySet<string> = new Set([
 ]);
 
 export type TokenRefreshResult =
-  | { status: "refreshed" }
+  | { status: "refreshed"; user?: AuthUser }
   | { status: "expired"; error: ApiError }
   | { status: "unavailable"; error: ApiError };
 
@@ -132,7 +135,10 @@ async function performRefresh(sessionSignal: AbortSignal): Promise<TokenRefreshR
     if (sessionSignal.aborted) return unavailable(createCancelledError());
     setAccessToken(token);
 
-    return { status: "refreshed" };
+    return {
+      status: "refreshed",
+      ...(parsed.data.data.user ? { user: parsed.data.data.user } : {}),
+    };
   } catch (error) {
     if (sessionSignal.aborted) return unavailable(createCancelledError());
     if (isApiError(error)) {

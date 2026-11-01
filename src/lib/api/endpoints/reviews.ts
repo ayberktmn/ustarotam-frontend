@@ -31,7 +31,7 @@ const ownerReplySchema = z.object({
   updatedAt: z.coerce.string(),
 });
 
-const ownedReviewSchema: z.ZodType<OwnedReview> = z
+export const ownedReviewSchema: z.ZodType<OwnedReview> = z
   .object({
     id: idSchema,
     workshopId: idSchema,
