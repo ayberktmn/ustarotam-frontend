@@ -38,6 +38,10 @@ export const queryKeys = {
     offers: (id: string, page: number, limit: number) =>
       ["work-requests", "offers", id, page, limit] as const,
   },
+  accountMessages: {
+    conversations: ["account", "messages"] as const,
+    conversation: (id: string) => ["account", "messages", id] as const,
+  },
   workshopPanel: {
     all: ["workshop-panel"] as const,
     requests: ["workshop-panel", "requests"] as const,

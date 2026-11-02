@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { CalendarClock, MapPin, MessageSquareText } from "lucide-react";
 import { toast } from "sonner";
@@ -24,6 +24,7 @@ import {
   OfferForm,
   type OfferFormValues,
 } from "@/features/usta-panel/offers/offer-form";
+import { StartWorkModal } from "@/features/usta-panel/offers/start-work-modal";
 import {
   getEffectiveOfferStatus,
   OFFER_STATUS_VARIANT,
@@ -70,7 +71,8 @@ function OffersView() {
   const [confirmingOfferId, setConfirmingOfferId] = useState<string | null>(
     null,
   );
-  const startingRequest = useRef(false);
+  const [startOffer, setStartOffer] = useState<WorkshopPanelOffer | null>(null);
+  const [startError, setStartError] = useState<string | null>(null);
 
   if (offers.isPending) {
     return <OffersSkeleton />;
@@ -135,22 +137,15 @@ function OffersView() {
     }
   }
 
-  async function handleStart(offer: WorkshopPanelOffer) {
-    if (
-      startingRequest.current ||
-      !window.confirm(t("offers.startConfirm"))
-    ) {
-      return;
-    }
-
-    startingRequest.current = true;
+  async function confirmStart() {
+    if (!startOffer || startWork.isPending) return;
+    setStartError(null);
     try {
-      await startWork.mutateAsync(offer.requestId);
+      await startWork.mutateAsync(startOffer.requestId);
       toast.success(t("jobs.jobStarted"));
+      setStartOffer(null);
     } catch {
-      toast.error(t("jobs.startError"));
-    } finally {
-      startingRequest.current = false;
+      setStartError(t("jobs.startError"));
     }
   }
 
@@ -285,7 +280,7 @@ function OffersView() {
                       type="button"
                       className="mt-4 w-full sm:w-auto"
                       disabled={startWork.isPending}
-                      onClick={() => void handleStart(offer)}
+                      onClick={() => { setStartError(null); setStartOffer(offer); }}
                     >
                       {startWork.isPending
                         ? t("jobs.startingJob")
@@ -374,6 +369,7 @@ function OffersView() {
           })}
         </div>
       )}
+      {startOffer ? <StartWorkModal title={t("offers.startModalTitle")} description={t("offers.startModalDescription")} cancelLabel={t("offers.startModalCancel")} confirmLabel={t("offers.startModalConfirm")} pendingLabel={t("jobs.startingJob")} error={startError} pending={startWork.isPending} onCancel={() => { if (!startWork.isPending) { setStartOffer(null); setStartError(null); } }} onConfirm={() => void confirmStart()} /> : null}
     </div>
   );
 }

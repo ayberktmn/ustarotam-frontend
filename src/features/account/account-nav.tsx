@@ -19,6 +19,7 @@ const baseItems = [
   { href: "/hesabim", key: "overview", icon: LayoutDashboard },
   { href: "/hesabim/profil", key: "profile", icon: UserRound },
   { href: "/hesabim/talepler", key: "requests", icon: ClipboardList },
+  { href: "/hesabim/mesajlar", key: "messages", icon: MessageSquareText },
 ] as const;
 
 const panelItem = {

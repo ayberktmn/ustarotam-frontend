@@ -10,7 +10,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:contract": "vitest run src/lib/repositories/__tests__/workshop-panel-api-repository.test.ts src/lib/api/__tests__/work-requests.test.ts",
+    "test:contract": "vitest run src/lib/repositories/__tests__/workshop-panel-api-repository.test.ts src/lib/api/__tests__/work-requests.test.ts src/lib/api/__tests__/conversations.test.ts src/lib/api/__tests__/local-gateway.test.ts",
     "test:e2e": "playwright test"
   },
   "engines": {

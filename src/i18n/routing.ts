@@ -47,6 +47,10 @@ export const routing = defineRouting({
       tr: "/hesabim/talepler",
       en: "/account/requests",
     },
+    "/hesabim/mesajlar": {
+      tr: "/hesabim/mesajlar",
+      en: "/account/messages",
+    },
     "/hesabim/talepler/yeni": {
       tr: "/hesabim/talepler/yeni",
       en: "/account/requests/new",

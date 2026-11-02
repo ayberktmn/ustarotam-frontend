@@ -221,6 +221,22 @@ it("forwards owner workshop profile, paginated list, reviews and profile updates
   expect(fetchMock.mock.calls.every(([, init]) => init.headers.get("authorization") === "Bearer test.token")).toBe(true);
 });
 
+it("forwards customer conversation list, detail, messages, create, send and read with bearer auth", async () => {
+  const fetchMock = vi.fn().mockResolvedValue(successEnvelope({}, {headers: {"content-type": "application/json"}}));
+  vi.stubGlobal("fetch", fetchMock);
+  const id = "10000000-0000-4000-8000-000000000001:20000000-0000-4000-8000-000000000002";
+  const cases = [
+    ["conversations", "GET"], ["conversations", "POST"], [ `conversations/${id}`, "GET"],
+    [`conversations/${id}/messages`, "GET"], [`conversations/${id}/messages`, "POST"], [`conversations/${id}/read`, "POST"],
+  ] as const;
+  for (const [path, method] of cases) {
+    const body = method === "POST" ? JSON.stringify({ body: "test" }) : undefined;
+    const response = await localGateway(request(path, method, { authorization: "Bearer test.token", body }), path.split("/"));
+    expect(response.status).toBe(200);
+  }
+  expect(fetchMock.mock.calls.every(([, init]) => init.headers.get("authorization") === "Bearer test.token")).toBe(true);
+});
+
 it("forwards the exact login contract to the fixed HTTPS target and creates an isolated HttpOnly local cookie", async () => {
   const fetchMock = vi.fn().mockResolvedValue(successEnvelope({accessToken: "access", user: {emailVerified: true}}, {headers: {"content-type": "application/json", "set-cookie": sessionCookie}}));
   vi.stubGlobal("fetch", fetchMock);

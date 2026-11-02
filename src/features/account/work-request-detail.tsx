@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ArrowLeft, Ban, CalendarClock, Check, Pencil, X } from "lucide-react";
+import { ArrowLeft, Ban, CalendarClock, Check, MessageSquareText, Pencil, X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -13,7 +13,8 @@ import { WorkRequestForm } from "@/features/account/work-request-form";
 import { WorkRequestReviewForm } from "@/features/account/work-request-review-form";
 import { OfferAcceptModal } from "@/features/account/offer-accept-modal";
 import { OfferRejectModal } from "@/features/account/offer-reject-modal";
-import { Link } from "@/i18n/navigation";
+import { useCreateConversation } from "@/features/account/messages/queries";
+import { Link, useRouter } from "@/i18n/navigation";
 import { ApiError, workRequestService } from "@/lib/api";
 import { formatCurrency, formatCount, formatDate } from "@/lib/format";
 import { queryKeys } from "@/lib/query/keys";
@@ -28,6 +29,8 @@ function WorkRequestDetail({ id }: { id: string }) {
   const common = useTranslations("common");
   const locale = useLocale() as Locale;
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const createConversation = useCreateConversation();
   const [isEditing, setIsEditing] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [retryCancel, setRetryCancel] = useState(false);
@@ -165,6 +168,16 @@ function WorkRequestDetail({ id }: { id: string }) {
     }
     setOfferRejectError(null);
     setOfferToReject(offer);
+  }
+
+  async function messageWorkshop(offerId: string) {
+    if (createConversation.isPending) return;
+    try {
+      const conversation = await createConversation.mutateAsync(offerId);
+      router.push({ pathname: "/hesabim/mesajlar", query: { conversation } });
+    } catch {
+      setActionError(t("messageWorkshopError"));
+    }
   }
 
   async function confirmOfferRejection() {
@@ -312,6 +325,7 @@ function WorkRequestDetail({ id }: { id: string }) {
                         </Button>
                       </div>
                     ) : null}
+                    {offer.status === "ACCEPTED" ? <Button type="button" variant="outline" className="w-full sm:w-auto" disabled={createConversation.isPending} onClick={() => void messageWorkshop(offer.id)}><MessageSquareText aria-hidden="true" />{createConversation.isPending ? t("openingMessages") : t("messageWorkshop")}</Button> : null}
                   </article>
                 );
               })}
