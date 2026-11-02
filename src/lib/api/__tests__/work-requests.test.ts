@@ -56,7 +56,7 @@ const offer = {
     vehicleType: item(ids.vehicleType, "Car"),
     vehicleBrand: null,
     vehicleModel: null,
-    specialty: { ...item(ids.specialty, "Engine"), description: null },
+    specialty: item(ids.specialty, "Engine"),
     province: item(ids.province, "Ankara"),
     district: item(ids.district, "Cankaya"),
     address: "123 Main Street",
@@ -102,7 +102,6 @@ describe("customer work request API contracts", () => {
         description: "fren tutmuyor",
         status: "PUBLISHED",
         assignedWorkshopId: null,
-        photoCount: 0,
         createdAt: "2026-10-29T18:19:49.978Z",
         updatedAt: "2026-10-29T18:19:49.962Z",
       },
@@ -123,6 +122,7 @@ describe("customer work request API contracts", () => {
       vehicleBrand: responseRows[0].vehicleBrand,
       vehicleModel: null,
       province: { code: "45" },
+      photoCount: 0,
     });
   });
 
@@ -258,6 +258,19 @@ describe("customer work request API contracts", () => {
       auth: "required",
       retries: 0,
     }));
+  });
+
+  it("treats a successful empty offer page as an empty state", async () => {
+    const request = vi.fn(async (options) => options.schema.parse({
+      success: true,
+      data: [],
+      meta: { page: 1, limit: 20, total: 0, totalPages: 0 },
+    })) as ApiRequestFn;
+
+    await expect(createWorkRequestService(request).listOffers(requestId)).resolves.toEqual({
+      items: [],
+      meta: { page: 1, limit: 20, total: 0, totalPages: 0 },
+    });
   });
 
   it("submits a completed-work review without a service verification id", async () => {

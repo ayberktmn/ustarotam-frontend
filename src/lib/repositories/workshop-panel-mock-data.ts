@@ -422,6 +422,7 @@ export const panelNotificationsSeed: WorkshopPanelNotification[] = [
   {
     id: "not-5001",
     type: "NEW_MESSAGE",
+    translationKey: "NEW_MESSAGE",
     title: { tr: "Yeni mesaj", en: "New message" },
     body: {
       tr: "Selin K. şanzıman işi için yarın sabah geleceğini yazdı.",
@@ -434,6 +435,7 @@ export const panelNotificationsSeed: WorkshopPanelNotification[] = [
   {
     id: "not-5002",
     type: "NEW_MATCH",
+    translationKey: "MATCHED_WORK",
     title: { tr: "Yeni eşleşen iş", en: "New matched job" },
     body: {
       tr: "Manisa / Şehzadeler'de klima bakımı talebi yayınlandı.",
@@ -446,6 +448,7 @@ export const panelNotificationsSeed: WorkshopPanelNotification[] = [
   {
     id: "not-5003",
     type: "OFFER_ACCEPTED",
+    translationKey: "OFFER_ACCEPTED",
     title: { tr: "Teklifiniz kabul edildi", en: "Your offer was accepted" },
     body: {
       tr: "2019 Toyota Corolla şanzıman işi için verdiğiniz teklif kabul edildi.",
@@ -458,6 +461,7 @@ export const panelNotificationsSeed: WorkshopPanelNotification[] = [
   {
     id: "not-5004",
     type: "OFFER_REJECTED",
+    translationKey: "OFFER_REJECTED",
     title: { tr: "Teklif reddedildi", en: "Offer rejected" },
     body: {
       tr: "Honda Civic kaporta işi için verdiğiniz teklif reddedildi.",
@@ -470,6 +474,7 @@ export const panelNotificationsSeed: WorkshopPanelNotification[] = [
   {
     id: "not-5005",
     type: "REVIEW_RECEIVED",
+    translationKey: "UNKNOWN",
     title: { tr: "Yeni değerlendirme", en: "New review" },
     body: {
       tr: "Periyodik bakım işi için 5 yıldızlı bir değerlendirme aldınız.",
@@ -482,6 +487,7 @@ export const panelNotificationsSeed: WorkshopPanelNotification[] = [
   {
     id: "not-5006",
     type: "REQUEST_COMPLETED",
+    translationKey: "WORK_COMPLETED",
     title: { tr: "İş tamamlandı", en: "Job completed" },
     body: {
       tr: "Fren bakımı işi müşteri tarafından tamamlandı olarak işaretlendi.",

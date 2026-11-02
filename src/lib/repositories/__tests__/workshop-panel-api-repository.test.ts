@@ -57,7 +57,7 @@ describe("workshop panel API repository", () => {
     }));
     const repository = createApiWorkshopPanelRepository();
     expect(await repository.getProfile()).toMatchObject({ verification: "VERIFIED", email: "", logoUrl: "https://api.test/api/v1/workshops/10000000-0000-4000-8000-000000000001/logo" });
-    expect((await repository.listReviews()).reviews).toEqual([]);
+    expect(await repository.listReviews()).toEqual({ reviews: [], summary: { average: 0, total: 0, distribution: [] } });
     expect(await repository.listNotifications()).toEqual([]);
     expect(urls.some((url) => url.endsWith("/workshops/mine/profile"))).toBe(true);
   });
@@ -68,7 +68,7 @@ describe("workshop panel API repository", () => {
       const url = String(input); const method = init?.method ?? "GET";
       calls.push({ url, method, body: init?.body, contentType: new Headers(init?.headers).get("content-type") });
       if (url.endsWith("/workshops/mine/logo") && method === "PUT") return envelope({ logoUrl: "https://cdn.test/logo.webp" });
-      if (url.endsWith("/workshops/mine/logo") && method === "DELETE") return new Response(null, { status: 204 });
+      if (url.endsWith("/workshops/mine/logo") && method === "DELETE") return envelope({ logoUrl: null });
       return envelope([{ province: { id: "p", name: "Ankara" }, district: { id: "d", name: "Çankaya" } }]);
     }));
     const repository = createApiWorkshopPanelRepository();
@@ -79,5 +79,40 @@ describe("workshop panel API repository", () => {
     await repository.deleteLogo();
     expect(calls.map(({ method }) => method)).toEqual(["GET", "PUT", "PUT", "DELETE"]);
     expect(calls[2]).toMatchObject({ body: file, contentType: "image/webp" });
+  });
+
+  it("uses canonical conversation routes and normalizes workshop message ownership", async () => {
+    const calls: Array<{ url: string; method: string }> = [];
+    vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input); const method = init?.method ?? "GET"; calls.push({ url, method });
+      if (url.includes("/conversations/") && url.endsWith("/messages") && method === "POST") {
+        return envelope({ id: "message-2", body: "Yanıt", sender: "CUSTOMER", createdAt: "2026-10-24T11:00:00.000Z", readAt: null });
+      }
+      if (url.includes("/conversations/") && url.includes("/messages?")) {
+        return envelope([{ id: "message-1", body: "Merhaba", sender: "WORKSHOP", createdAt: "2026-10-24T10:00:00.000Z", readAt: null }], { meta: { page: 1, limit: 100, total: 1, totalPages: 1 } });
+      }
+      return envelope({ id: "request-1:workshop-1", requestId: "request-1", customerName: "Ayşe", requestTitle: "Fren işi", lastMessage: "Merhaba", lastMessageAt: "2026-10-24T10:00:00.000Z", unreadCount: 1 });
+    }));
+    const repository = createApiWorkshopPanelRepository();
+    const conversation = await repository.getConversation("request-1:workshop-1");
+    expect(conversation.messages[0]).toMatchObject({ sender: "CUSTOMER", body: { tr: "Merhaba", en: "Merhaba" } });
+    expect(await repository.sendMessage("request-1:workshop-1", "Yanıt")).toMatchObject({ sender: "WORKSHOP" });
+    expect(calls).toEqual([
+      { url: "https://api.test/api/v1/conversations/request-1%3Aworkshop-1", method: "GET" },
+      { url: "https://api.test/api/v1/conversations/request-1%3Aworkshop-1/messages?page=1&limit=100", method: "GET" },
+      { url: "https://api.test/api/v1/conversations/request-1%3Aworkshop-1/messages", method: "POST" },
+    ]);
+  });
+
+  it("maps notification events to translation keys without rendering backend copy", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => envelope([
+      { id: "n-1", type: "OFFER_ACCEPTED", title: "Offer accepted", body: "Your offer was accepted by the request owner.", requestId: "r-1", readAt: null, createdAt: "2026-10-24T10:00:00.000Z" },
+      { id: "n-2", type: "REQUEST_STATUS", title: "Work started", body: "Started", requestId: "r-1", readAt: "2026-10-24T11:00:00.000Z", createdAt: "2026-10-24T10:00:00.000Z" },
+    ], { meta: { unread: 1 } })));
+    const notifications = await createApiWorkshopPanelRepository().listNotifications();
+    expect(notifications).toMatchObject([
+      { translationKey: "OFFER_ACCEPTED", title: { tr: "", en: "" }, read: false },
+      { translationKey: "WORK_STARTED", title: { tr: "", en: "" }, read: true },
+    ]);
   });
 });

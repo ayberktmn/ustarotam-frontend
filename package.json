@@ -4,11 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "npm run test:contract",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:contract": "vitest run src/lib/repositories/__tests__/workshop-panel-api-repository.test.ts src/lib/api/__tests__/work-requests.test.ts",
     "test:e2e": "playwright test"
   },
   "engines": {

@@ -98,8 +98,8 @@ function MessageThread({ conversationId, onBack }: MessageThreadProps) {
   const data = conversation.data;
 
   return (
-    <div className="flex h-full min-h-[32rem] flex-col">
-      <div className="flex items-start gap-3 border-b border-line px-5 py-4">
+    <div className="flex h-full min-h-[32rem] min-w-0 flex-col">
+      <div className="flex min-w-0 items-start gap-3 border-b border-line px-3 py-4 sm:px-5">
         <Button
           type="button"
           variant="ghost"
@@ -134,7 +134,7 @@ function MessageThread({ conversationId, onBack }: MessageThreadProps) {
             >
               <div
                 className={cn(
-                  "max-w-[85%] rounded-2xl px-4 py-2.5 text-sm leading-relaxed",
+                  "min-w-0 max-w-[90%] rounded-2xl px-3 py-2.5 text-sm leading-relaxed break-words sm:max-w-[80%] sm:px-4",
                   isWorkshop
                     ? "rounded-br-md bg-brand-soft text-ink"
                     : "rounded-bl-md bg-muted text-ink/85",

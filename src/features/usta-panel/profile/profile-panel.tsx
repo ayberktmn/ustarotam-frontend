@@ -215,20 +215,24 @@ function ProfilePanel() {
             </Button>
           </CardHeader>
           <CardContent>
-            <ul className="flex flex-wrap gap-2">
-              {data.serviceAreas.map((area) => (
-                <li
-                  key={`${area.city}-${area.district}`}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1.5 text-sm text-brand-deep"
-                >
-                  <MapPin
-                    aria-hidden="true"
-                    className="size-3.5 text-brand"
-                  />
-                  {area.city} / {area.district}
-                </li>
-              ))}
-            </ul>
+            {data.serviceAreas.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{t("profile.serviceAreasEmpty")}</p>
+            ) : (
+              <ul className="flex flex-wrap gap-2">
+                {data.serviceAreas.map((area) => (
+                  <li
+                    key={`${area.city}-${area.district}`}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1.5 text-sm text-brand-deep"
+                  >
+                    <MapPin
+                      aria-hidden="true"
+                      className="size-3.5 text-brand"
+                    />
+                    {area.city} / {area.district}
+                  </li>
+                ))}
+              </ul>
+            )}
             {isEditingServiceAreas ? <ServiceAreasEditor areas={data.serviceAreas} onDone={() => setIsEditingServiceAreas(false)} /> : null}
           </CardContent>
         </Card>

@@ -38,7 +38,7 @@ const provinceSchema: z.ZodType<WorkRequestProvince> = catalogItemBaseSchema.ext
   slug: item.slug ?? item.id,
 }));
 const specialtySchema: z.ZodType<WorkRequestSpecialty> = catalogItemBaseSchema.extend({
-  description: z.string().nullable(),
+  description: z.string().nullable().optional().default(null),
 }).transform((item) => ({
   ...item,
   slug: item.slug ?? item.id,
@@ -55,7 +55,7 @@ const workRequestSchema: z.ZodType<WorkRequest> = z.object({
   description: z.string(),
   status: statusSchema,
   assignedWorkshopId: idSchema.nullable(),
-  photoCount: z.number().int().nonnegative(),
+  photoCount: z.number().int().nonnegative().optional().default(0),
   createdAt: z.coerce.string(),
   updatedAt: z.coerce.string(),
 }).strict();

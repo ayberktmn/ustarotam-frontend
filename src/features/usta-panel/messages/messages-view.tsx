@@ -71,11 +71,11 @@ function MessagesView() {
           </p>
         </div>
       ) : (
-        <Card className="overflow-hidden">
-          <div className="grid lg:grid-cols-[320px_minmax(0,1fr)]">
+        <Card className="min-w-0 overflow-hidden">
+          <div className="grid min-w-0 lg:grid-cols-[320px_minmax(0,1fr)]">
             <div
               className={cn(
-                "border-line lg:block lg:border-e",
+                "max-h-[32rem] min-w-0 overflow-y-auto border-line lg:block lg:max-h-none lg:border-e",
                 selectedId ? "hidden" : "block",
               )}
             >
@@ -93,7 +93,7 @@ function MessagesView() {
                         onClick={() => setSelectedId(conversation.id)}
                         aria-pressed={isActive}
                         className={cn(
-                          "w-full px-4 py-4 text-start transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none",
+                          "min-w-0 w-full px-3 py-4 text-start transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:px-4",
                           isActive
                             ? "bg-brand-soft/60"
                             : "hover:bg-muted",

@@ -126,6 +126,18 @@ export const PANEL_NOTIFICATION_TYPES = [
 export type PanelNotificationType =
   (typeof PANEL_NOTIFICATION_TYPES)[number];
 
+export type PanelNotificationTranslationKey =
+  | "MATCHED_WORK"
+  | "NEW_OFFER"
+  | "OFFER_ACCEPTED"
+  | "OFFER_REJECTED"
+  | "NEW_MESSAGE"
+  | "WORK_STARTED"
+  | "WORK_COMPLETED"
+  | "WORK_CANCELLED"
+  | "REQUEST_STATUS"
+  | "UNKNOWN";
+
 export type PanelRoute =
   | "/usta-panel"
   | "/usta-panel/isler"
@@ -138,6 +150,7 @@ export type PanelRoute =
 export interface WorkshopPanelNotification {
   id: string;
   type: PanelNotificationType;
+  translationKey: PanelNotificationTranslationKey;
   title: LocalizedText;
   body: LocalizedText;
   createdAt: string;

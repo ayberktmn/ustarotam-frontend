@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/ui/error-state";
 import { WorkRequestForm } from "@/features/account/work-request-form";
 import { WorkRequestReviewForm } from "@/features/account/work-request-review-form";
+import { OfferAcceptModal } from "@/features/account/offer-accept-modal";
+import { OfferRejectModal } from "@/features/account/offer-reject-modal";
 import { Link } from "@/i18n/navigation";
 import { ApiError, workRequestService } from "@/lib/api";
 import { formatCurrency, formatCount, formatDate } from "@/lib/format";
@@ -32,6 +34,10 @@ function WorkRequestDetail({ id }: { id: string }) {
   const [offerPage, setOfferPage] = useState(1);
   const [reviewSubmitted, setReviewSubmitted] = useState(false);
   const [reviewAlreadySubmitted, setReviewAlreadySubmitted] = useState(false);
+  const [offerToAccept, setOfferToAccept] = useState<WorkOffer | null>(null);
+  const [offerAcceptError, setOfferAcceptError] = useState<string | null>(null);
+  const [offerToReject, setOfferToReject] = useState<WorkOffer | null>(null);
+  const [offerRejectError, setOfferRejectError] = useState<string | null>(null);
   const requestActionLock = useRef(false);
   const offerActionLock = useRef(false);
   const requestKey = queryKeys.workRequests.detail(id);
@@ -152,13 +158,39 @@ function WorkRequestDetail({ id }: { id: string }) {
   });
 
   async function handleOfferDecision(offer: WorkOffer, decision: "accept" | "reject") {
-    if (offerActionLock.current || !window.confirm(t(decision === "accept" ? "acceptOfferConfirm" : "rejectOfferConfirm"))) return;
+    if (decision === "accept") {
+      setOfferAcceptError(null);
+      setOfferToAccept(offer);
+      return;
+    }
+    setOfferRejectError(null);
+    setOfferToReject(offer);
+  }
+
+  async function confirmOfferRejection() {
+    if (!offerToReject || offerActionLock.current || rejectOffer.isPending) return;
     offerActionLock.current = true;
-    setActionError(null);
+    setOfferRejectError(null);
     try {
-      await (decision === "accept" ? acceptOffer.mutateAsync(offer.id) : rejectOffer.mutateAsync(offer.id));
+      await rejectOffer.mutateAsync(offerToReject.id);
+      setOfferToReject(null);
     } catch (error) {
-      setActionError(t("offerActionError"));
+      setOfferRejectError(t("offerActionError"));
+      if (error instanceof ApiError && error.status === 409) invalidateRequest();
+    } finally {
+      offerActionLock.current = false;
+    }
+  }
+
+  async function confirmOfferAcceptance() {
+    if (!offerToAccept || offerActionLock.current || acceptOffer.isPending) return;
+    offerActionLock.current = true;
+    setOfferAcceptError(null);
+    try {
+      await acceptOffer.mutateAsync(offerToAccept.id);
+      setOfferToAccept(null);
+    } catch (error) {
+      setOfferAcceptError(t("offerActionError"));
       if (error instanceof ApiError && error.status === 409) invalidateRequest();
     } finally {
       offerActionLock.current = false;
@@ -323,6 +355,38 @@ function WorkRequestDetail({ id }: { id: string }) {
         </section>
       ) : null}
       {actionError ? <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/25 bg-destructive/5 px-4 py-3 text-sm text-destructive"><span>{actionError}</span>{retryCancel ? <Button type="button" variant="link" size="sm" onClick={() => cancel.mutate()}>{common("retry")}</Button> : null}</div> : null}
+      {offerToAccept ? (
+        <OfferAcceptModal
+          title={t("acceptOfferModalTitle")}
+          description={t("acceptOfferModalDescription")}
+          amountLabel={t("acceptOfferModalAmount")}
+          amount={formatCurrency(offerToAccept.amount, offerToAccept.currency, locale)}
+          serviceLabel={t("acceptOfferModalService")}
+          serviceName={t("acceptOfferModalServiceFallback")}
+          confirmLabel={t("acceptOfferModalConfirm")}
+          cancelLabel={t("acceptOfferModalCancel")}
+          pendingLabel={t("acceptOfferModalPending")}
+          error={offerAcceptError}
+          isPending={acceptOffer.isPending}
+          onConfirm={() => void confirmOfferAcceptance()}
+          onClose={() => { if (!acceptOffer.isPending) { setOfferToAccept(null); setOfferAcceptError(null); } }}
+        />
+      ) : null}
+      {offerToReject ? (
+        <OfferRejectModal
+          title={t("rejectOfferModalTitle")}
+          description={t("rejectOfferModalDescription")}
+          amountLabel={t("rejectOfferModalAmount")}
+          amount={formatCurrency(offerToReject.amount, offerToReject.currency, locale)}
+          confirmLabel={t("rejectOfferModalConfirm")}
+          cancelLabel={t("rejectOfferModalCancel")}
+          pendingLabel={t("rejectOfferModalPending")}
+          error={offerRejectError}
+          isPending={rejectOffer.isPending}
+          onConfirm={() => void confirmOfferRejection()}
+          onClose={() => { if (!rejectOffer.isPending) { setOfferToReject(null); setOfferRejectError(null); } }}
+        />
+      ) : null}
     </div>
   );
 }

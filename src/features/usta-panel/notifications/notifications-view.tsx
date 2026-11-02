@@ -14,12 +14,11 @@ import {
   useMarkNotificationRead,
   usePanelNotifications,
 } from "@/features/usta-panel/queries";
-import { panelText } from "@/features/usta-panel/text";
 import { Link } from "@/i18n/navigation";
 import { formatDateTime } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import type { Locale } from "@/types/locale";
 import type { WorkshopPanelNotification } from "@/types/usta-panel";
+import type { Locale } from "@/types/locale";
 
 function NotificationsView() {
   const t = useTranslations("workshopPanel");
@@ -102,20 +101,21 @@ function NotificationsView() {
         <Card className="overflow-hidden">
           <ul>
             {notifications.data.map((notification) => {
+              const translation = `notifications.events.${notification.translationKey}` as const;
               const content = (
                 <div className="flex items-start gap-3">
                   <NotificationIcon type={notification.type} />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-start justify-between gap-2">
-                      <p className="text-sm font-bold text-ink">
-                        {panelText(notification.title, locale)}
+                      <p className="break-words text-sm font-bold text-ink">
+                        {t(`${translation}.title`)}
                       </p>
                       <span className="text-[11px] text-muted-foreground">
                         {formatDateTime(notification.createdAt, locale)}
                       </span>
                     </div>
-                    <p className="mt-1 text-sm leading-relaxed text-ink/75">
-                      {panelText(notification.body, locale)}
+                    <p className="mt-1 break-words text-sm leading-relaxed text-ink/75">
+                      {t(`${translation}.body`)}
                     </p>
                     {!notification.read ? (
                       <Badge variant="secondary" className="mt-2">
@@ -138,7 +138,7 @@ function NotificationsView() {
                     <Link
                       href={notification.href}
                       onClick={() => handleRead(notification)}
-                      className="block px-5 py-4 transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                      className="block px-3 py-4 transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:px-5"
                     >
                       {content}
                     </Link>
@@ -146,7 +146,7 @@ function NotificationsView() {
                     <button
                       type="button"
                       onClick={() => handleRead(notification)}
-                      className="block w-full px-5 py-4 text-start transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                      className="block w-full px-3 py-4 text-start transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:px-5"
                     >
                       {content}
                     </button>
