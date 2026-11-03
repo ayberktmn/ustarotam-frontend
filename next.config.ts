@@ -4,6 +4,7 @@ import type { NextConfig } from "next";
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
 
 const nextConfig: NextConfig = {
+  deploymentId: process.env.DEPLOYMENT_VERSION,
   poweredByHeader: false,
   skipProxyUrlNormalize: true,
   logging: {

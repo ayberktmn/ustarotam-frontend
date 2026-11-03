@@ -119,6 +119,8 @@
     "applicationIncomplete": "Application details are incomplete. Check the fields and try again.",
     "resubmitTitle": "Resubmit your application",
     "resubmitDescription": "After completing the required corrections and documents, you can send your application for review again.",
+    "resubmitDocumentsLoading": "Checking document status…",
+    "resubmitDocumentsMissing": "Complete the required documents before resubmitting.",
     "resubmit": "Resubmit",
     "resubmitting": "Submitting"
   },
@@ -668,7 +670,8 @@
       "requests": "My Requests",
       "messages": "Messages",
       "favorites": "Favorites",
-      "reviews": "My Reviews"
+      "reviews": "My Reviews",
+      "count": "{count} items"
     },
     "logout": "Sign Out",
     "overview": {
@@ -987,7 +990,37 @@
     "contact": "Contact",
     "rights": "© 2026 Usta Rotam. All rights reserved.",
     "location": "Türkiye",
-    "health": "Service status"
+    "health": "Service status",
+    "cookiePreferences": "Cookie preferences"
+  },
+  "cookieConsent": {
+    "bannerLabel": "Cookie preferences notice",
+    "title": "You control your cookie preferences",
+    "summary": "Usta Rotam uses necessary cookies for core functions such as sessions and security. Optional categories are enabled only with your explicit choice.",
+    "acceptAll": "Accept all",
+    "necessaryOnly": "Necessary only",
+    "manage": "Manage preferences",
+    "preferencesTitle": "Cookie preferences",
+    "preferencesDescription": "Necessary cookies are required for the service to operate securely. You can change other categories at any time.",
+    "close": "Close cookie preferences",
+    "alwaysActive": "Always active",
+    "notInUse": "Not currently in use",
+    "necessary": {
+      "title": "Necessary",
+      "description": "Supports core functions such as sign-in, security, language and remembering your cookie choice. It cannot be disabled."
+    },
+    "analytics": {
+      "title": "Analytics",
+      "label": "Allow analytics cookies",
+      "description": "For optional technologies that measure site usage. Usta Rotam currently has no active analytics integration."
+    },
+    "marketing": {
+      "title": "Marketing",
+      "label": "Allow marketing cookies",
+      "description": "For optional personalized advertising or campaign measurement technologies. Usta Rotam currently has no active marketing integration."
+    },
+    "noOptionalScripts": "No analytics or marketing script is currently loaded. If such an integration is added, a versioned preference contract requiring explicit consent will apply.",
+    "save": "Save preferences"
   },
   "notFound": {
     "code": "404 — Off route",
@@ -1340,6 +1373,18 @@
       "logoSaveError": "Logo could not be saved.",
       "logoRemoved": "Logo removed.",
       "logoRemoveError": "Logo could not be removed.",
+      "businessBanner": "Business Banner",
+      "bannerHint": "Upload a JPG, PNG or WebP image up to 2 MB, preferably in a horizontal 16:9 ratio. Images use a cover crop on cards.",
+      "bannerInvalid": "Choose a JPG, PNG or WebP file up to 2 MB.",
+      "bannerEmpty": "No banner uploaded yet",
+      "bannerPreviewAlt": "{name} business banner preview",
+      "uploadBanner": "Upload banner",
+      "changeBanner": "Change banner",
+      "removeBanner": "Remove banner",
+      "bannerSaved": "Banner saved.",
+      "bannerSaveError": "Banner could not be saved.",
+      "bannerRemoved": "Banner removed.",
+      "bannerRemoveError": "Banner could not be removed.",
       "documents": "My Documents",
       "documentsDescription": "Documents uploaded with your workshop application.",
       "documentsUnavailable": "Your application documents are unavailable right now.",

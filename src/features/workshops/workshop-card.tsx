@@ -45,6 +45,7 @@ async function WorkshopCard({
       >
         <Image
           src={workshop.coverImage}
+          unoptimized={Boolean(workshop.bannerUrl)}
           alt={t("workshopAlt", { name: workshop.name })}
           fill
           sizes="(min-width: 1280px) 300px, (min-width: 768px) 50vw, 100vw"

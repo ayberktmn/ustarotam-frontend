@@ -61,6 +61,7 @@ function WorkRequestDetail({ id }: { id: string }) {
     void queryClient.invalidateQueries({ queryKey: requestKey });
     void queryClient.invalidateQueries({ queryKey: queryKeys.workRequests.lists });
     void queryClient.invalidateQueries({ queryKey: queryKeys.workRequests.offerLists(id) });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.accountBadges });
   }
 
   const update = useMutation({

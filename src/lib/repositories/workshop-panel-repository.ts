@@ -73,6 +73,8 @@ export interface WorkshopPanelRepository {
   updateServiceAreas(areas: UpdateWorkshopServiceAreasInput[]): Promise<WorkshopPanelServiceArea[]>;
   uploadLogo(file: File): Promise<string>;
   deleteLogo(): Promise<void>;
+  uploadBanner(file: File): Promise<string>;
+  deleteBanner(): Promise<void>;
 }
 
 const MOCK_LATENCY_MS = 180;
@@ -402,6 +404,8 @@ export function createMockWorkshopPanelRepository(): WorkshopPanelRepository {
     },
     async uploadLogo() { const logoUrl = "https://example.test/logo.webp"; profile = { ...profile, logoUrl }; return logoUrl; },
     async deleteLogo() { profile = { ...profile, logoUrl: null }; },
+    async uploadBanner() { const bannerUrl = "https://example.test/banner.webp"; profile = { ...profile, bannerUrl }; return bannerUrl; },
+    async deleteBanner() { profile = { ...profile, bannerUrl: null }; },
   };
 }
 

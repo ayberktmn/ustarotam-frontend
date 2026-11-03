@@ -23,6 +23,7 @@ import { ErrorState } from "@/components/ui/error-state";
 import { ProfileForm } from "@/features/usta-panel/profile/profile-form";
 import { ServiceAreasEditor } from "@/features/usta-panel/profile/service-areas-editor";
 import { BusinessLogoManager } from "@/features/usta-panel/profile/business-logo-manager";
+import { BusinessBannerManager } from "@/features/usta-panel/profile/business-banner-manager";
 import { WorkshopDocumentsManager } from "@/features/usta-panel/profile/workshop-documents-manager";
 import { usePanelProfile } from "@/features/usta-panel/queries";
 import { panelText } from "@/features/usta-panel/text";
@@ -239,6 +240,7 @@ function ProfilePanel() {
       </div>
 
       <BusinessLogoManager name={data.name} logoUrl={data.logoUrl} />
+      <BusinessBannerManager name={data.name} bannerUrl={data.bannerUrl} />
       <WorkshopDocumentsManager workshopId={data.id} />
     </div>
   );

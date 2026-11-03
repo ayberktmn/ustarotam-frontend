@@ -4,7 +4,7 @@ import { browserRequest } from "@/lib/api/client";
 import { createWorkRequestService } from "@/lib/api/endpoints/work-requests";
 import { createWorkshopService } from "@/lib/api/endpoints/workshops";
 import { createReviewService } from "@/lib/api/endpoints/reviews";
-import { apiWorkshopLogoSchema } from "@/lib/api/schemas";
+import { apiWorkshopBannerSchema, apiWorkshopLogoSchema } from "@/lib/api/schemas";
 import type { WorkshopPanelRepository } from "@/lib/repositories/workshop-panel-repository";
 import type {
   PanelNotificationType,
@@ -64,7 +64,7 @@ const notificationSchema = z.object({ id: z.string(), type: z.string(), title: z
 const namedProfileRelationSchema = z.object({ id: z.string(), name: z.string() });
 const serviceAreaSchema = z.object({ province: namedProfileRelationSchema, district: namedProfileRelationSchema.nullable() });
 const profileSchema = z.object({
-  id: z.string(), name: z.string().nullable(), ownerName: z.string(), email: z.string().nullable(), phone: z.string().nullable(), description: z.string().nullable(), logoUrl: apiWorkshopLogoSchema.nullable().optional(),
+  id: z.string(), name: z.string().nullable(), ownerName: z.string(), email: z.string().nullable(), phone: z.string().nullable(), description: z.string().nullable(), logoUrl: apiWorkshopLogoSchema.nullable().optional(), bannerUrl: apiWorkshopBannerSchema.nullable().optional(),
   province: z.object({ id: z.string(), name: z.string() }).nullable(), district: z.object({ id: z.string(), name: z.string() }).nullable(), address: z.string().nullable(),
   status: z.enum(["PUBLISHED", "DRAFT", "PENDING", "REJECTED", "SUSPENDED"]), verificationStatus: z.string(),
   specialties: z.array(z.object({ id: z.string(), name: z.string() })),
@@ -131,11 +131,13 @@ export function createApiWorkshopPanelRepository(): WorkshopPanelRepository {
     async replyToReview(reviewId, reply) {
       await panelReviewService.reply(reviewId, reply);
     },
-    async getProfile() { const row = await browserRequest({ path: "/workshops/mine/profile", schema: profileSchema, auth: "required" }); return { id: row.id, name: row.name ?? "", ownerName: row.ownerName, email: row.email ?? "", phone: row.phone ?? "", logoUrl: row.logoUrl ?? null, about: localized(row.description ?? ""), provinceId: row.province?.id ?? "", districtId: row.district?.id ?? "", city: row.province?.name ?? "", district: row.district?.name ?? "", address: localized(row.address ?? ""), status: row.status === "PUBLISHED" || row.status === "SUSPENDED" ? row.status : "PENDING", verification: row.verificationStatus as PanelVerificationStatus, specialties: row.specialties.map(({ name }) => localized(name)), specialtyIds: row.specialties.map(({ id }) => id), vehicleTypeIds: row.vehicleTypes.map(({ id }) => id), brandIds: row.brands.map(({ id }) => id), serviceAreas: row.serviceAreas.map(({ province, district }) => ({ provinceId: province.id, districtId: district?.id ?? null, city: province.name, district: district?.name ?? "" })), rating: row.averageRating ?? 0, reviewCount: row.reviewCount }; },
+    async getProfile() { const row = await browserRequest({ path: "/workshops/mine/profile", schema: profileSchema, auth: "required" }); return { id: row.id, name: row.name ?? "", ownerName: row.ownerName, email: row.email ?? "", phone: row.phone ?? "", logoUrl: row.logoUrl ?? null, bannerUrl: row.bannerUrl ?? null, about: localized(row.description ?? ""), provinceId: row.province?.id ?? "", districtId: row.district?.id ?? "", city: row.province?.name ?? "", district: row.district?.name ?? "", address: localized(row.address ?? ""), status: row.status === "PUBLISHED" || row.status === "SUSPENDED" ? row.status : "PENDING", verification: row.verificationStatus as PanelVerificationStatus, specialties: row.specialties.map(({ name }) => localized(name)), specialtyIds: row.specialties.map(({ id }) => id), vehicleTypeIds: row.vehicleTypes.map(({ id }) => id), brandIds: row.brands.map(({ id }) => id), serviceAreas: row.serviceAreas.map(({ province, district }) => ({ provinceId: province.id, districtId: district?.id ?? null, city: province.name, district: district?.name ?? "" })), rating: row.averageRating ?? 0, reviewCount: row.reviewCount }; },
     async updateProfile(input) { const profile = await this.getProfile(); await panelWorkshopService.update(profile.id, { name: input.name, email: input.email, phone: input.phone, provinceId: input.provinceId, districtId: input.districtId, address: input.address, description: input.about.tr, specialtyIds: input.specialtyIds, vehicleTypeIds: input.vehicleTypeIds, brandIds: input.brandIds }); return this.getProfile(); },
     async getServiceAreas() { const rows = await browserRequest({ path: "/workshops/mine/service-areas", schema: z.array(serviceAreaSchema), auth: "required" }); return rows.map(({ province, district }) => ({ provinceId: province.id, districtId: district?.id ?? null, city: province.name, district: district?.name ?? "" })); },
     async updateServiceAreas(areas) { const rows = await browserRequest({ path: "/workshops/mine/service-areas", method: "PUT", body: { areas }, schema: z.array(serviceAreaSchema), auth: "required", retries: 0 }); return rows.map(({ province, district }) => ({ provinceId: province.id, districtId: district?.id ?? null, city: province.name, district: district?.name ?? "" })); },
     async uploadLogo(file) { const result = await browserRequest({ path: "/workshops/mine/logo", method: "PUT", binaryBody: file, schema: z.object({ logoUrl: apiWorkshopLogoSchema }), auth: "required", retries: 0 }); return result.logoUrl; },
     async deleteLogo() { await browserRequest({ path: "/workshops/mine/logo", method: "DELETE", schema: z.object({ logoUrl: z.null() }), auth: "required", retries: 0 }); },
+    async uploadBanner(file) { const result = await browserRequest({ path: "/workshops/mine/banner", method: "PUT", binaryBody: file, schema: z.object({ bannerUrl: apiWorkshopBannerSchema }), auth: "required", retries: 0 }); return result.bannerUrl; },
+    async deleteBanner() { await browserRequest({ path: "/workshops/mine/banner", method: "DELETE", schema: z.object({ bannerUrl: z.null() }), auth: "required", retries: 0 }); },
   };
 }

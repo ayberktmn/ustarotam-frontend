@@ -42,6 +42,7 @@ const messagesSchema = z.object({
 });
 const entity = <T extends z.ZodTypeAny>(schema: T) =>
   z.object({ success: z.literal(true), data: schema });
+const unreadCountSchema = entity(z.object({ count: z.number().int().nonnegative() }));
 
 function mapSummary(row: z.infer<typeof summarySchema>): WorkshopPanelConversation {
   return {
@@ -90,6 +91,10 @@ export function createConversationService(request: ApiRequestFn) {
     },
     markRead(conversationId: string): Promise<void> {
       return request({ path: `/conversations/${encodeURIComponent(conversationId)}/read`, method: "POST", schema: z.void(), auth: "required", retries: 0 });
+    },
+    async unreadCount(): Promise<number> {
+      const response = await request({ path: "/messages/unread-count", schema: unreadCountSchema, responseMode: "raw", auth: "required" });
+      return response.data.count;
     },
   };
 }

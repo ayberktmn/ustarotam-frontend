@@ -232,6 +232,54 @@ test("existing rejected application shows status and reason", async ({page, cont
   await page.goto("/en/join-as-workshop"); await expect(page.getByText("Your application was rejected", {exact: true})).toBeVisible(); await expect(page.getByText("Missing license", {exact: true})).toBeVisible();
 });
 
+test("rejected application stays disabled until missing documents upload and submits once", async ({page, context}) => {
+  const documents = ["TAX_CERTIFICATE", "WORKPLACE_LICENSE"].map(type => ({id: `${type}-id`, documentType: type}));
+  let submitCount = 0;
+  let submitted = false;
+  let release!: () => void;
+  const submitGate = new Promise<void>(resolve => { release = resolve; });
+  await context.route("**/api/local/workshop-applications/mine*", route => {
+    const current = {...application(), status: submitted ? "PENDING" : "REJECTED", rejectionReason: "Missing chamber document"};
+    return route.fulfill({json: {success: true, data: [current], meta: {page: 1, limit: 100, total: 1, totalPages: 1}}});
+  });
+  await context.route("**/api/local/workshop-applications/real-application-id/documents", route =>
+    route.fulfill({json: {success: true, data: documents}}),
+  );
+  await context.route("**/api/local/workshop-applications/real-application-id/documents/**", route => {
+    const type = route.request().url().split("/").at(-1)!;
+    documents.push({id: `${type}-id`, documentType: type});
+    return route.fulfill({status: 201, json: {success: true, data: {id: `${type}-id`, documentType: type}}});
+  });
+  await context.route("**/api/local/workshop-applications/real-application-id/submit", async route => {
+    submitCount++;
+    await submitGate;
+    submitted = true;
+    return route.fulfill({json: {success: true, data: application()}});
+  });
+
+  await page.goto("/en/join-as-workshop");
+  const resubmit = page.getByRole("button", {name: "Resubmit", exact: true});
+  await expect(resubmit).toBeDisabled();
+  await expect(page.getByText("Complete the required documents before resubmitting.")).toBeVisible();
+  await page.getByLabel("Chamber registration").setInputFiles({name: "chamber.pdf", mimeType: "application/pdf", buffer: Buffer.from("%PDF-1.7 chamber")});
+  await expect(resubmit).toBeEnabled();
+  await resubmit.evaluate((button: HTMLButtonElement) => { button.click(); button.click(); });
+  await expect(page.getByRole("button", {name: "Submitting", exact: true})).toBeDisabled();
+  expect(submitCount).toBe(1);
+  release();
+  await expect(page.getByText("Pending review", {exact: true})).toBeVisible();
+});
+
+test("stored required documents enable rejected resubmission without re-upload", async ({page, context}) => {
+  const documents = ["TAX_CERTIFICATE", "WORKPLACE_LICENSE", "CHAMBER_REGISTRATION"].map(type => ({id: `${type}-id`, documentType: type}));
+  mineFixture = {success: true, data: [{...application(), status: "REJECTED"}], meta: {page: 1, limit: 100, total: 1, totalPages: 1}};
+  await context.route("**/api/local/workshop-applications/real-application-id/documents", route => route.fulfill({json: {success: true, data: documents}}));
+
+  await page.goto("/en/join-as-workshop");
+  await expect(page.getByRole("button", {name: "Resubmit", exact: true})).toBeEnabled();
+  await expect(page.getByText("All required documents have been uploaded.").last()).toBeVisible();
+});
+
 for (const [status, label] of [["VERIFIED", "Your application was approved"], ["SUSPENDED", "Business suspended"]] as const) {
   test(`${status} application shows backend status without offering document mutation`, async ({page, context}) => {
     mineFixture = {success: true, data: [{...application(), status}], meta: {page: 1, limit: 100, total: 1, totalPages: 1}};

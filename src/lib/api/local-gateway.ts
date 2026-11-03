@@ -25,9 +25,10 @@ const conversationPath = new RegExp(`^conversations(?:/${workRequestId}:${workRe
 const conversationIdSegment = new RegExp(`^${workRequestId}:${workRequestId}$`);
 const googleStartPath = "auth/google/start";
 const workshopLogoReadPath = new RegExp(`^workshops/${workRequestId}/logo$`);
+const workshopBannerReadPath = new RegExp(`^workshops/(?:${workRequestId}|mine)/banner$`);
 const documentMimeTypes = new Set([PDF_MIME, DOCX_MIME]);
 const logoMimeTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
-const protectedListPath = /^(reviews\/mine|work-offers\/(matching|mine)|conversations|notifications)$/;
+const protectedListPath = /^(reviews\/mine|work-offers\/(matching|mine)|conversations|messages\/unread-count|notifications)$/;
 
 class UploadBodyError extends Error {
   constructor(public status: number, public code: string) { super(code); }
@@ -92,10 +93,11 @@ function requestOrigin(request: Request): string | null {
 
 function allowedPath(path: string, method: string): boolean {
   if (path === "workshops/mine/logo") return method === "PUT" || method === "DELETE";
+  if (path === "workshops/mine/banner") return ["GET", "PUT", "DELETE"].includes(method);
   if (path === "workshops/mine/service-areas") return method === "GET" || method === "PUT";
   if (conversationPath.test(path)) return ["GET", "POST", "PATCH"].includes(method);
   if (method === "POST" && (path === "work-requests" || workRequestActionPath.test(path) || workRequestOffersPath.test(path) || workOfferActionPath.test(path) || workOfferCreateAliasPath.test(path) || path === "workshop-applications" || path === "workshop-applications/drafts" || /^workshop-applications\/[a-zA-Z0-9_-]{1,128}\/submit$/.test(path) || documentUploadPath.test(path))) return true;
-  if (method === "GET" && (path === googleStartPath || path === "workshop-applications/mine" || applicationDocumentsPath.test(path) || applicationDocumentReadPath.test(path) || workshopLogoReadPath.test(path) || workRequestOffersPath.test(path) || workOfferReadPath.test(path))) return true;
+  if (method === "GET" && (path === googleStartPath || path === "workshop-applications/mine" || applicationDocumentsPath.test(path) || applicationDocumentReadPath.test(path) || workshopLogoReadPath.test(path) || workshopBannerReadPath.test(path) || workRequestOffersPath.test(path) || workOfferReadPath.test(path))) return true;
   if (method === "PATCH") return path === "auth/me" || workRequestDetailPath.test(path) || workOfferUpdatePath.test(path) || /^workshops\/[a-zA-Z0-9-]+$/.test(path) || /^workshop-applications\/[a-zA-Z0-9_-]{1,128}$/.test(path);
   if (method === "POST") return /^auth\/(login|register|refresh|logout|email-verification\/(resend|confirm)|password-reset\/(request|confirm))$/.test(path);
   if (method !== "GET") return false;
@@ -217,9 +219,10 @@ export async function localGateway(request: Request, segments: string[]): Promis
   }
   const isDocumentUpload = request.method === "POST" && documentUploadPath.test(path);
   const isLogoUpload = request.method === "PUT" && path === "workshops/mine/logo";
+  const isBannerUpload = request.method === "PUT" && path === "workshops/mine/banner";
   let body: string | ArrayBuffer | undefined;
   let cookie: string | null;
-  try { body = isDocumentUpload ? await readDocumentBody(request) : isLogoUpload ? await readLogoBody(request) : await readBody(request); cookie = refreshCookie(request); }
+  try { body = isDocumentUpload ? await readDocumentBody(request) : isLogoUpload || isBannerUpload ? await readLogoBody(request) : await readBody(request); cookie = refreshCookie(request); }
   catch (error) {
     if (error instanceof UploadBodyError) return failure(error.status, error.code);
     return failure(400, "VALIDATION_ERROR");
@@ -229,8 +232,9 @@ export async function localGateway(request: Request, segments: string[]): Promis
   if (path === "auth/refresh" && !cookie) return failure(401, "REFRESH_TOKEN_MISSING");
   if (path === "auth/logout" && !cookie) return new Response(null, {status: 204, headers: {"Cache-Control": "no-store"}});
   const isLogoRead = request.method === "GET" && workshopLogoReadPath.test(path);
-  const headers = new Headers({ Accept: isLogoRead ? "image/avif,image/webp,image/png,image/jpeg" : "application/json" });
-  if (body) headers.set("Content-Type", isDocumentUpload || isLogoUpload ? request.headers.get("content-type")! : "application/json");
+  const isBannerRead = request.method === "GET" && workshopBannerReadPath.test(path);
+  const headers = new Headers({ Accept: isLogoRead || isBannerRead ? "image/avif,image/webp,image/png,image/jpeg" : "application/json" });
+  if (body) headers.set("Content-Type", isDocumentUpload || isLogoUpload || isBannerUpload ? request.headers.get("content-type")! : "application/json");
   if (cookie && ["auth/refresh", "auth/logout"].includes(path)) headers.set("Cookie", cookie);
   const protectedListAuthorization = request.headers.get("authorization");
   if (protectedListPath.test(path) &&
@@ -245,7 +249,7 @@ export async function localGateway(request: Request, segments: string[]): Promis
   // Construct path from validated segments, never from a caller-supplied URL.
   const url = `${target.origin}/api/v1/${path}${incoming.search}`;
   try {
-    const timeoutSignal = AbortSignal.timeout(isDocumentUpload || isLogoUpload ? 120_000 : 10_000);
+    const timeoutSignal = AbortSignal.timeout(isDocumentUpload || isLogoUpload || isBannerUpload ? 120_000 : 10_000);
     const upstreamSignal = AbortSignal.any([request.signal, timeoutSignal]);
     const upstream = await fetch(url, { method: request.method, headers, body, cache: "no-store",
       redirect: "manual", signal: upstreamSignal });
@@ -262,7 +266,7 @@ export async function localGateway(request: Request, segments: string[]): Promis
       responseHeaders.set("Content-Type", contentType);
       responseHeaders.set("Content-Disposition", "attachment");
     }
-    else if (isLogoRead && contentType && logoMimeTypes.has(contentType)) responseHeaders.set("Content-Type", contentType);
+    else if ((isLogoRead || isBannerRead) && contentType && logoMimeTypes.has(contentType)) responseHeaders.set("Content-Type", contentType);
     else if (upstream.status !== 204) return failure(502, "GATEWAY_INVALID_RESPONSE");
     // Error responses are authoritative and must not be replaced by a cookie
     // parsing failure. Auth cookies are only meaningful on successful flows.

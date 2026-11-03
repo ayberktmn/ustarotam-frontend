@@ -30,6 +30,7 @@ async function WorkshopProfileHero({
       <section className="relative h-56 overflow-hidden bg-ink sm:h-64 lg:h-72">
         <Image
           src={workshop.coverImage}
+          unoptimized={Boolean(workshop.bannerUrl)}
           alt={t("workshopAlt", { name: workshop.name })}
           fill
           priority

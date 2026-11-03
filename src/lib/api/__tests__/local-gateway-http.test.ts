@@ -9,6 +9,7 @@ const endpoints = [
   "work-offers/matching",
   "work-offers/mine",
   "conversations",
+  "messages/unread-count",
   "notifications",
 ];
 const servers: ReturnType<typeof createServer>[] = [];

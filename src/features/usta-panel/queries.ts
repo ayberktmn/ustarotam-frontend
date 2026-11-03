@@ -270,3 +270,19 @@ export function useDeletePanelLogo() {
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: queryKeys.workshopPanel.profile }),
   });
 }
+
+export function useUploadPanelBanner() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (file: File) => workshopPanelRepository.uploadBanner(file),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: queryKeys.workshopPanel.profile }),
+  });
+}
+
+export function useDeletePanelBanner() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => workshopPanelRepository.deleteBanner(),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: queryKeys.workshopPanel.profile }),
+  });
+}

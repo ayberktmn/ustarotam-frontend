@@ -89,6 +89,7 @@ export interface Workshop {
   address: string;
   phone: string;
   logoUrl?: string | null;
+  bannerUrl?: string | null;
   description: LocalizedText;
   verificationStatus: VerificationStatus;
   ratingBreakdown: WorkshopRatingBreakdown | null;

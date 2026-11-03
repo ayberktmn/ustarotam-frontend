@@ -59,6 +59,26 @@ it("forwards a validated raw workshop logo upload", async () => {
   expect(init.headers.get("authorization")).toBe("Bearer token");
 });
 
+it("forwards owner banner upload and public banner bytes with the existing media limits", async () => {
+  const id = "10000000-0000-4000-8000-000000000001";
+  const bytes = new Uint8Array([82, 73, 70, 70]);
+  const fetchMock = vi.fn()
+    .mockResolvedValueOnce(successEnvelope({bannerUrl: `${upstream}/workshops/${id}/banner`}))
+    .mockResolvedValueOnce(new Response(bytes, {headers: {"content-type": "image/webp"}}));
+  vi.stubGlobal("fetch", fetchMock);
+  const uploadPath = "workshops/mine/banner";
+  const upload = new Request(`${origin}/api/local/${uploadPath}`, {method: "PUT", headers: {host: "localhost:3000", origin, "content-type": "image/webp", authorization: "Bearer token"}, body: bytes});
+  expect((await localGateway(upload, uploadPath.split("/"))).status).toBe(200);
+  expect(fetchMock.mock.calls[0][1].headers.get("authorization")).toBe("Bearer token");
+  expect(fetchMock.mock.calls[0][1].headers.get("content-type")).toBe("image/webp");
+
+  const readPath = `workshops/${id}/banner`;
+  const banner = await localGateway(request(readPath), readPath.split("/"));
+  expect(banner.status).toBe(200);
+  expect(banner.headers.get("content-type")).toBe("image/webp");
+  expect(new Uint8Array(await banner.arrayBuffer())).toEqual(bytes);
+});
+
 it("forwards a public workshop logo as binary behind the production proxy", async () => {
   const id = "10000000-0000-4000-8000-000000000001";
   const path = ["workshops", id, "logo"];

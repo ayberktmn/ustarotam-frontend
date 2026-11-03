@@ -51,12 +51,12 @@ describe("workshop panel API repository", () => {
     const urls: string[] = [];
     vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL) => {
       const url = String(input); urls.push(url);
-      if (url.endsWith("/workshops/mine/profile")) return envelope({ id: "10000000-0000-4000-8000-000000000001", name: "Usta", ownerName: "Ali Usta", email: "", phone: "555", description: null, logoUrl: "/api/v1/workshops/10000000-0000-4000-8000-000000000001/logo", province: { id: "p", name: "Ankara" }, district: { id: "d", name: "Çankaya" }, address: "Adres", status: "PUBLISHED", verificationStatus: "VERIFIED", specialties: [], serviceAreas: [], averageRating: null, reviewCount: 0 });
+      if (url.endsWith("/workshops/mine/profile")) return envelope({ id: "10000000-0000-4000-8000-000000000001", name: "Usta", ownerName: "Ali Usta", email: "", phone: "555", description: null, logoUrl: "/api/v1/workshops/10000000-0000-4000-8000-000000000001/logo", bannerUrl: "/api/v1/workshops/10000000-0000-4000-8000-000000000001/banner", province: { id: "p", name: "Ankara" }, district: { id: "d", name: "Çankaya" }, address: "Adres", status: "PUBLISHED", verificationStatus: "VERIFIED", specialties: [], serviceAreas: [], averageRating: null, reviewCount: 0 });
       if (url.includes("/workshops/mine/reviews")) return envelope([], { summary: { average: 0, total: 0, distribution: [] } });
       return envelope([], { meta: { unread: 0 } });
     }));
     const repository = createApiWorkshopPanelRepository();
-    expect(await repository.getProfile()).toMatchObject({ verification: "VERIFIED", email: "", logoUrl: "https://api.test/api/v1/workshops/10000000-0000-4000-8000-000000000001/logo" });
+    expect(await repository.getProfile()).toMatchObject({ verification: "VERIFIED", email: "", logoUrl: "https://api.test/api/v1/workshops/10000000-0000-4000-8000-000000000001/logo", bannerUrl: "/api/local/workshops/10000000-0000-4000-8000-000000000001/banner" });
     expect(await repository.listReviews()).toEqual({ reviews: [], summary: { average: 0, total: 0, distribution: [] } });
     expect(await repository.listNotifications()).toEqual([]);
     expect(urls.some((url) => url.endsWith("/workshops/mine/profile"))).toBe(true);
@@ -69,6 +69,8 @@ describe("workshop panel API repository", () => {
       calls.push({ url, method, body: init?.body, contentType: new Headers(init?.headers).get("content-type") });
       if (url.endsWith("/workshops/mine/logo") && method === "PUT") return envelope({ logoUrl: "https://cdn.test/logo.webp" });
       if (url.endsWith("/workshops/mine/logo") && method === "DELETE") return envelope({ logoUrl: null });
+      if (url.endsWith("/workshops/mine/banner") && method === "PUT") return envelope({ bannerUrl: "https://cdn.test/banner.webp" });
+      if (url.endsWith("/workshops/mine/banner") && method === "DELETE") return envelope({ bannerUrl: null });
       return envelope([{ province: { id: "p", name: "Ankara" }, district: { id: "d", name: "Çankaya" } }]);
     }));
     const repository = createApiWorkshopPanelRepository();
@@ -77,7 +79,9 @@ describe("workshop panel API repository", () => {
     const file = new File([new Uint8Array([1, 2, 3])], "logo.webp", { type: "image/webp" });
     expect(await repository.uploadLogo(file)).toBe("https://cdn.test/logo.webp");
     await repository.deleteLogo();
-    expect(calls.map(({ method }) => method)).toEqual(["GET", "PUT", "PUT", "DELETE"]);
+    expect(await repository.uploadBanner(file)).toBe("https://cdn.test/banner.webp");
+    await repository.deleteBanner();
+    expect(calls.map(({ method }) => method)).toEqual(["GET", "PUT", "PUT", "DELETE", "PUT", "DELETE"]);
     expect(calls[2]).toMatchObject({ body: file, contentType: "image/webp" });
   });
 

@@ -13,12 +13,32 @@ interface ErrorPageProps {
   retry: () => void;
 }
 
+function safeDiagnostic(error: Error & { digest?: string }) {
+  const redact = (value: string) => value
+    .replace(/https?:\/\/\S+/gi, "[url]")
+    .replace(/[\w.+-]+@[\w.-]+\.[a-z]{2,}/gi, "[email]")
+    .replace(/(bearer|token|password)\s*[:=]?\s*\S+/gi, "$1 [redacted]")
+    .slice(0, 500);
+
+  return {
+    name: error.name,
+    message: redact(error.message),
+    digest: error.digest,
+    pathname: window.location.pathname,
+    stack: error.stack
+      ?.split("\n")
+      .slice(0, 6)
+      .map(redact)
+      .join("\n"),
+  };
+}
+
 export default function ErrorPage({ error, retry }: ErrorPageProps) {
   const t = useTranslations("error");
   const nav = useTranslations("nav");
 
   useEffect(() => {
-    console.error("Usta Rotam: unexpected error", error);
+    console.error("[UstaRotam] Runtime boundary", safeDiagnostic(error));
   }, [error]);
 
   return (

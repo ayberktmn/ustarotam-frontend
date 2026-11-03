@@ -23,7 +23,7 @@ const cookie = (persistent: boolean) => `usta_rotam_dev_refresh=mock-session; Pa
 // Every API call is intercepted. No production auth request is allowed in browser tests.
 export async function mockAuth(context: BrowserContext): Promise<AuthMock> {
   const state: AuthMock = { calls: [], loginCode: null, registerCode: null, verifyCode: null, resetCode: null, provincesFail: false, specialtiesFail: false, logoutFail: false, refreshExpired: false, roles: ["USER"] };
-  await context.route(/^https?:\/\/(?!localhost:3000(?:\/|$))/, route => route.abort());
+  await context.route(/^https?:\/\/(?!localhost(?::\d+)?(?:\/|$))/, route => route.abort());
   await context.route("**/api/local/**", async (route: Route) => {
     const req = route.request();
     const path = new URL(req.url()).pathname.replace("/api/local", "");
@@ -69,6 +69,11 @@ export async function mockAuth(context: BrowserContext): Promise<AuthMock> {
       if (state.resetCode) return error(400, state.resetCode);
       return route.fulfill({status: 204});
     }
+    if (path === "/messages/unread-count") return route.fulfill({json: {success: true, data: {count: 0}}});
+    if (path === "/work-requests/mine") return route.fulfill({json: {success: true, data: [], meta: {page: 1, limit: 100, total: 0, totalPages: 0}}});
+    if (path === "/reviews/mine") return route.fulfill({json: {success: true, data: [], meta: {page: 1, limit: 1, total: 0, totalPages: 0}}});
+    if (/^\/workshops\/[0-9a-f-]{36}\/logo$/i.test(path)) return route.fulfill({status: 404, json: {success: false, error: {code: "LOGO_NOT_FOUND", message: "Logo not found"}}});
+    if (/^\/workshops\/[0-9a-f-]{36}\/banner$/i.test(path)) return route.fulfill({status: 200, contentType: "image/png", body: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADElEQVR42mNk+M/wHwAF/gL+X8x1WQAAAABJRU5ErkJggg==", "base64")});
     throw new Error(`Unmocked API request: ${req.method()} ${path}`);
   });
   return state;

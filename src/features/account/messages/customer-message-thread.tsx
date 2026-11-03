@@ -30,7 +30,9 @@ export function CustomerMessageThread({ conversationId, onBack }: { conversation
       markRead.mutate(conversation.data.id);
     }
   }, [conversation.data, markRead]);
-  useEffect(() => bottomRef.current?.scrollIntoView({ block: "end" }), [conversation.data?.messages.length]);
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: "end" });
+  }, [conversation.data?.messages.length]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();

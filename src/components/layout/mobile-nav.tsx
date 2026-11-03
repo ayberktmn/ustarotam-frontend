@@ -6,6 +6,7 @@ import { ArrowRight, BriefcaseBusiness, Heart, LogOut, Menu, UserRound, X } from
 import { toast } from "sonner";
 
 import { useAuth } from "@/features/auth/auth-provider";
+import { useAccountBadges } from "@/features/account/use-account-badges";
 import { useApiErrorToast } from "@/lib/toast/use-api-error-toast";
 import { canAccessWorkshopPanel } from "@/lib/workshop-panel-access";
 import { LanguageSwitcher } from "@/components/layout/language-switcher";
@@ -24,6 +25,7 @@ function MobileNav() {
   const account = useTranslations("account");
   const toasts = useTranslations("toasts");
   const { user, isLoading, isLoggingOut, logout } = useAuth();
+  const counts = useAccountBadges();
   const showApiError = useApiErrorToast();
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -169,20 +171,26 @@ function MobileNav() {
                   ) : null}
 
                   <div className="mt-4 grid grid-cols-2 gap-2">
-                    <Link
-                      href="/hesabim/favoriler"
-                      onClick={() => setOpen(false)}
-                      className="rounded-lg border border-line bg-card px-3 py-2 text-center text-xs font-semibold text-ink transition-colors hover:bg-brand-soft hover:text-brand focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-                    >
-                      {account("nav.favorites")}
-                    </Link>
-                    <Link
-                      href="/hesabim/yorumlar"
-                      onClick={() => setOpen(false)}
-                      className="rounded-lg border border-line bg-card px-3 py-2 text-center text-xs font-semibold text-ink transition-colors hover:bg-brand-soft hover:text-brand focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-                    >
-                      {account("nav.reviews")}
-                    </Link>
+                    {([
+                      ["/hesabim/mesajlar", "messages"],
+                      ["/hesabim/talepler", "requests"],
+                      ["/hesabim/favoriler", "favorites"],
+                      ["/hesabim/yorumlar", "reviews"],
+                    ] as const).map(([href, key]) => (
+                      <Link
+                        key={href}
+                        href={href}
+                        onClick={() => setOpen(false)}
+                        className="flex items-center justify-between gap-2 rounded-lg border border-line bg-card px-3 py-2 text-xs font-semibold text-ink transition-colors hover:bg-brand-soft hover:text-brand focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+                      >
+                        {account(`nav.${key}`)}
+                        {counts[key] > 0 ? (
+                          <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-[11px] font-bold text-white" aria-label={account("nav.count", { count: counts[key] })}>
+                            {counts[key]}
+                          </span>
+                        ) : null}
+                      </Link>
+                    ))}
                   </div>
 
                   <Button

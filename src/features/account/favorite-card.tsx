@@ -37,6 +37,7 @@ function FavoriteCard({ workshop }: FavoriteCardProps) {
       <div className="relative size-24 shrink-0 overflow-hidden rounded-xl bg-muted">
         <Image
           src={workshop.coverImage}
+          unoptimized={Boolean(workshop.bannerUrl)}
           alt=""
           fill
           sizes="96px"

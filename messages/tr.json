@@ -119,6 +119,8 @@
     "applicationIncomplete": "Başvuru bilgileri eksik. Lütfen alanları kontrol edin.",
     "resubmitTitle": "Başvurunuzu yeniden gönderin",
     "resubmitDescription": "Gerekli düzeltmeleri ve belgeleri tamamladıktan sonra başvurunuzu yeniden incelemeye gönderebilirsiniz.",
+    "resubmitDocumentsLoading": "Belge durumu kontrol ediliyor…",
+    "resubmitDocumentsMissing": "Yeniden göndermek için zorunlu belgeleri tamamlayın.",
     "resubmit": "Yeniden gönder",
     "resubmitting": "Gönderiliyor"
   },
@@ -670,7 +672,8 @@
       "requests": "Taleplerim",
       "messages": "Mesajlar",
       "favorites": "Favorilerim",
-      "reviews": "Yorumlarım"
+      "reviews": "Yorumlarım",
+      "count": "{count} öğe"
     },
     "logout": "Çıkış Yap",
     "overview": {
@@ -989,7 +992,37 @@
     "contact": "İletişim",
     "rights": "© 2026 Usta Rotam. Tüm hakları saklıdır.",
     "location": "Türkiye",
-    "health": "Servis durumu"
+    "health": "Servis durumu",
+    "cookiePreferences": "Çerez tercihleri"
+  },
+  "cookieConsent": {
+    "bannerLabel": "Çerez tercihleri bildirimi",
+    "title": "Çerez tercihlerinizi siz yönetin",
+    "summary": "Usta Rotam, oturum ve güvenlik gibi temel işlevler için zorunlu çerezleri kullanır. İsteğe bağlı kategoriler yalnızca açık tercihinizle etkinleşir.",
+    "acceptAll": "Tümünü kabul et",
+    "necessaryOnly": "Yalnızca gerekli olanlar",
+    "manage": "Tercihleri yönet",
+    "preferencesTitle": "Çerez tercihleri",
+    "preferencesDescription": "Zorunlu çerezler hizmetin güvenli çalışması için gereklidir. Diğer kategorileri dilediğiniz zaman değiştirebilirsiniz.",
+    "close": "Çerez tercihlerini kapat",
+    "alwaysActive": "Her zaman aktif",
+    "notInUse": "Şu anda kullanılmıyor",
+    "necessary": {
+      "title": "Zorunlu",
+      "description": "Oturum açma, güvenlik, dil ve verdiğiniz çerez tercihini hatırlama gibi temel işlevleri sağlar. Devre dışı bırakılamaz."
+    },
+    "analytics": {
+      "title": "Analitik",
+      "label": "Analitik çerezlere izin ver",
+      "description": "Site kullanımını ölçmeye yönelik isteğe bağlı teknolojiler içindir. Usta Rotam'da şu anda etkin bir analitik entegrasyonu yoktur."
+    },
+    "marketing": {
+      "title": "Pazarlama",
+      "label": "Pazarlama çerezlerine izin ver",
+      "description": "Kişiselleştirilmiş reklam veya kampanya ölçümüne yönelik isteğe bağlı teknolojiler içindir. Usta Rotam'da şu anda etkin bir pazarlama entegrasyonu yoktur."
+    },
+    "noOptionalScripts": "Şu anda analitik veya pazarlama scripti yüklenmez. Böyle bir entegrasyon eklenirse açık onay gerektiren sürümlü tercih sözleşmesi uygulanacaktır.",
+    "save": "Tercihleri kaydet"
   },
   "notFound": {
     "code": "404 — Rota dışı",
@@ -1342,6 +1375,18 @@
       "logoSaveError": "Logo kaydedilemedi.",
       "logoRemoved": "Logo kaldırıldı.",
       "logoRemoveError": "Logo kaldırılamadı.",
+      "businessBanner": "İşletme Bannerı",
+      "bannerHint": "JPG, PNG veya WebP biçiminde, en fazla 2 MB ve tercihen 16:9 yatay görsel yükleyin. Görsel kartlarda kırpılarak kaplanır.",
+      "bannerInvalid": "JPG, PNG veya WebP biçiminde ve en fazla 2 MB dosya seçin.",
+      "bannerEmpty": "Henüz banner yüklenmedi",
+      "bannerPreviewAlt": "{name} işletme bannerı önizlemesi",
+      "uploadBanner": "Banner yükle",
+      "changeBanner": "Bannerı değiştir",
+      "removeBanner": "Bannerı kaldır",
+      "bannerSaved": "Banner kaydedildi.",
+      "bannerSaveError": "Banner kaydedilemedi.",
+      "bannerRemoved": "Banner kaldırıldı.",
+      "bannerRemoveError": "Banner kaldırılamadı.",
       "documents": "Belgelerim",
       "documentsDescription": "İşletme başvurunuzda yüklediğiniz belgeler.",
       "documentsUnavailable": "Başvuru belgelerine şu anda erişilemiyor.",

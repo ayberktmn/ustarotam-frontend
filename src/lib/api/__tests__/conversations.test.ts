@@ -28,4 +28,32 @@ describe("customer conversation contract", () => {
     expect(thread.messages.map(({ sender, body }) => [sender, body.tr])).toEqual([["WORKSHOP", "Ustadan mesaj"], ["CUSTOMER", "Müşteri yanıtı"]]);
     expect(calls.map(({ method }) => method)).toEqual(["POST", "GET", "GET"]);
   });
+
+  it("reads the real unread-message count envelope", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => envelope({ count: 4 })));
+
+    const service = createConversationService(browserRequest);
+
+    await expect(service.unreadCount()).resolves.toBe(4);
+  });
+
+  it("maps the customer message returned by the send endpoint", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => envelope({
+      id: "message-2",
+      body: "Müşteri yanıtı",
+      sender: "CUSTOMER",
+      createdAt: "2026-11-03T10:02:00.000Z",
+      readAt: null,
+    }, {}, 201)));
+
+    const service = createConversationService(browserRequest);
+    const message = await service.send("request-id:workshop-id", "Müşteri yanıtı");
+
+    expect(message).toMatchObject({
+      id: "message-2",
+      sender: "CUSTOMER",
+      body: { tr: "Müşteri yanıtı", en: "Müşteri yanıtı" },
+      read: false,
+    });
+  });
 });

@@ -3,6 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { MapPin } from "lucide-react";
 
 import { Logo } from "@/components/layout/logo";
+import { CookiePreferencesLink } from "@/components/privacy/cookie-preferences-link";
 import { Link } from "@/i18n/navigation";
 import { getSpecialties } from "@/lib/workshops";
 import type { Locale } from "@/types/locale";
@@ -41,6 +42,7 @@ async function SiteFooter() {
                   {nav("home")}
                 </Link>
               </li>
+              <li><CookiePreferencesLink /></li>
               <li>
                 <Link
                   href="/usta-ara"

@@ -93,6 +93,7 @@ function ReviewsHistory() {
       setEditingId(null);
       toast.success(t("reviews.updateSuccess"));
       void queryClient.invalidateQueries({ queryKey: queryKeys.reviews.mine });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.accountBadges });
     },
     onError: () => toast.error(t("reviews.updateError")),
   });
@@ -102,6 +103,7 @@ function ReviewsHistory() {
     onSuccess: () => {
       toast.success(t("reviews.deleteSuccess"));
       void queryClient.invalidateQueries({ queryKey: queryKeys.reviews.mine });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.accountBadges });
     },
     onError: () => toast.error(t("reviews.deleteError")),
   });

@@ -207,6 +207,7 @@ export interface WorkshopPanelProfile {
   email: string;
   phone: string;
   logoUrl: string | null;
+  bannerUrl: string | null;
   about: LocalizedText;
   provinceId: string;
   districtId: string;

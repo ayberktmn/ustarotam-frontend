@@ -11,6 +11,7 @@ import {
 import { useTranslations } from "next-intl";
 
 import { useAuth } from "@/features/auth/auth-provider";
+import { useAccountBadges } from "@/features/account/use-account-badges";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
 import { canAccessWorkshopPanel } from "@/lib/workshop-panel-access";
@@ -37,6 +38,7 @@ function AccountNav() {
   const t = useTranslations("account");
   const pathname = usePathname();
   const { user } = useAuth();
+  const counts = useAccountBadges();
   const items = canAccessWorkshopPanel(user)
     ? [...baseItems, panelItem, ...trailingItems]
     : [...baseItems, ...trailingItems];
@@ -53,6 +55,7 @@ function AccountNav() {
             : pathname === item.href ||
               pathname.startsWith(`${item.href}/`);
         const Icon = item.icon;
+        const count = item.key in counts ? counts[item.key as keyof typeof counts] : 0;
 
         return (
           <Link
@@ -68,6 +71,7 @@ function AccountNav() {
           >
             <Icon aria-hidden="true" className="size-4" />
             {t(`nav.${item.key}`)}
+            {count > 0 ? <span className="ms-auto inline-flex min-w-5 items-center justify-center rounded-full bg-brand px-1.5 text-[11px] font-bold text-white" aria-label={t("nav.count", { count })}>{count}</span> : null}
           </Link>
         );
       })}

@@ -42,6 +42,7 @@ export const queryKeys = {
     conversations: ["account", "messages"] as const,
     conversation: (id: string) => ["account", "messages", id] as const,
   },
+  accountBadges: ["account", "badges"] as const,
   workshopPanel: {
     all: ["workshop-panel"] as const,
     requests: ["workshop-panel", "requests"] as const,

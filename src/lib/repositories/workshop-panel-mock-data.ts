@@ -20,6 +20,7 @@ export const panelProfileSeed: WorkshopPanelProfile = {
   email: "ilhan@egemotorservisi.example",
   phone: "+90 555 000 00 10",
   logoUrl: null,
+  bannerUrl: null,
   provinceId: "province-manisa",
   districtId: "district-sehzadeler",
   about: {

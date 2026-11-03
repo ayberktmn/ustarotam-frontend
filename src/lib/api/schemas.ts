@@ -150,6 +150,15 @@ export const apiWorkshopLogoSchema = z
     ? new URL(value, new URL(process.env.NEXT_PUBLIC_API_BASE_URL || FALLBACK_API_BASE_URL).origin).toString()
     : value);
 
+export const apiWorkshopBannerSchema = z
+  .union([
+    z.string().url(),
+    z.string().regex(/^\/api\/v1\/workshops\/(?:mine|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})\/banner$/i),
+  ])
+  .transform((value) => value.startsWith("/")
+    ? value.replace(/^\/api\/v1\//, "/api/local/")
+    : value);
+
 export const apiWorkshopSchema: z.ZodType<Workshop> = z
   .object({
     id: idSchema,
@@ -170,11 +179,12 @@ export const apiWorkshopSchema: z.ZodType<Workshop> = z
     images: z.array(imageSchema).optional(),
     coverImage: z.string().optional(),
     logoUrl: apiWorkshopLogoSchema.nullable().optional(),
+    bannerUrl: apiWorkshopBannerSchema.nullable().optional(),
   })
   .passthrough()
   .transform((value) => {
     const rating = value.averageRating ?? value.rating ?? null;
-    const image = value.coverImage ?? value.images?.[0];
+    const image = value.bannerUrl ?? value.coverImage ?? value.images?.[0];
     const coverImage =
       typeof image === "string" ? image : image?.url ?? "/images/hero-workshop.webp";
     const workshopStatus = value.status?.toUpperCase();
@@ -214,6 +224,7 @@ export const apiWorkshopSchema: z.ZodType<Workshop> = z
       reviews: [],
       coverImage,
       logoUrl: value.logoUrl ?? null,
+      bannerUrl: value.bannerUrl ?? null,
     };
   });
 

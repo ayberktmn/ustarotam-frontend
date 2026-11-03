@@ -101,6 +101,13 @@ describe("public workshop HTTP contracts", () => {
     });
   });
 
+  it("uses a deployed banner URL as the public card and detail cover", () => {
+    const bannerUrl = `/api/v1/workshops/${workshop.id}/banner`;
+    const parsed = apiWorkshopSchema.parse({ ...workshop, bannerUrl });
+    expect(parsed.coverImage).toBe(`/api/local/workshops/${workshop.id}/banner`);
+    expect(parsed.bannerUrl).toBe(`/api/local/workshops/${workshop.id}/banner`);
+  });
+
   it("still rejects unrecognized relative logo paths", () => {
     expect(apiWorkshopSchema.safeParse({ ...workshop, logoUrl: "/uploads/logo.png" }).success).toBe(false);
   });

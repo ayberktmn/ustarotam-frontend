@@ -5,6 +5,7 @@ import { Manrope } from "next/font/google";
 import { notFound } from "next/navigation";
 
 import { AppProviders } from "@/components/providers/app-providers";
+import { CookieConsent } from "@/components/privacy/cookie-consent";
 import { routing } from "@/i18n/routing";
 import { defaultOpenGraphImage, getSiteUrl, siteConfig } from "@/lib/site";
 import { locales } from "@/types/locale";
@@ -117,6 +118,7 @@ export default async function LocaleLayout({
       <body className="flex min-h-full flex-col bg-background text-foreground antialiased">
         <NextIntlClientProvider messages={messages}>
           <AppProviders>{children}</AppProviders>
+          <CookieConsent />
         </NextIntlClientProvider>
       </body>
     </html>

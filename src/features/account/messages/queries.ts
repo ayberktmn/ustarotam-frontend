@@ -27,6 +27,7 @@ export function useSendCustomerMessage() {
   return useMutation({ mutationFn: ({ conversationId, body }: { conversationId: string; body: string }) => service.send(conversationId, body), onSuccess: (_message, input) => {
     void queryClient.invalidateQueries({ queryKey: queryKeys.accountMessages.conversations });
     void queryClient.invalidateQueries({ queryKey: queryKeys.accountMessages.conversation(input.conversationId) });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.accountBadges });
   } });
 }
 
@@ -35,5 +36,6 @@ export function useMarkCustomerConversationRead() {
   return useMutation({ mutationFn: service.markRead, onSuccess: (_result, id) => {
     void queryClient.invalidateQueries({ queryKey: queryKeys.accountMessages.conversations });
     void queryClient.invalidateQueries({ queryKey: queryKeys.accountMessages.conversation(id) });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.accountBadges });
   } });
 }

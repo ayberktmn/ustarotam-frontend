@@ -20,6 +20,7 @@ function workshop(id: string, name: string, slug = `usta-${id.slice(-1)}`) {
       averageRating: 4.5,
       reviewCount: 2,
       verificationStatus: "VERIFIED",
+      bannerUrl: `/api/v1/workshops/${id}/banner`,
     },
   };
 }
@@ -58,6 +59,135 @@ test.beforeEach(async ({ context }) => {
   }]);
 });
 
+test("customer badges use API counts in desktop and mobile menus", async ({ page, context }, testInfo) => {
+  await page.addInitScript(({ key, ids }) => {
+    localStorage.setItem(key, JSON.stringify({ version: 1, ids }));
+  }, {
+    key: `usta-rotam.favorites.v1.${mockUser.id}`,
+    ids: [workshopId, secondWorkshopId],
+  });
+  await context.route("**/api/local/messages/unread-count", (route) =>
+    route.fulfill({ json: { success: true, data: { count: 4 } } }),
+  );
+  await context.route("**/api/local/work-requests/mine*", (route) =>
+    route.fulfill({ json: { success: true, data: [{
+      id: "40000000-0000-4000-8000-000000000001",
+      vehicleType: { id: "car", name: "Otomobil", slug: "otomobil" },
+      vehicleBrand: null,
+      vehicleModel: null,
+      specialty: { id: "brake", name: "Fren", slug: "fren", description: null },
+      province: { id: "ankara", name: "Ankara", slug: "ankara", code: 6 },
+      district: { id: "cankaya", name: "Çankaya", slug: "cankaya" },
+      address: "Çankaya",
+      description: "Fren bakımı",
+      status: "PUBLISHED",
+      assignedWorkshopId: null,
+      photoCount: 0,
+      createdAt: "2026-11-03T10:00:00.000Z",
+      updatedAt: "2026-11-03T10:00:00.000Z",
+    }], meta: { page: 1, limit: 100, total: 1, totalPages: 1 } } }),
+  );
+  await context.route("**/api/local/reviews/mine*", (route) =>
+    route.fulfill({ json: { success: true, data: [], meta: { page: 1, limit: 1, total: 3, totalPages: 3 } } }),
+  );
+
+  await page.goto("/hesabim");
+  const accountNav = page.getByRole("navigation", { name: "Hesap menüsü" });
+  await expect(accountNav.getByRole("link", { name: /Mesajlar 4/ })).toBeVisible();
+  await expect(accountNav.getByRole("link", { name: /Taleplerim 1/ })).toBeVisible();
+  await expect(accountNav.getByRole("link", { name: /Favorilerim 2/ })).toBeVisible();
+  await expect(accountNav.getByRole("link", { name: /Yorumlarım 3/ })).toBeVisible();
+
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: "Menüyü aç" }).click();
+    const mobileMenu = page.locator("#mobile-menu");
+    await expect(mobileMenu.getByRole("link", { name: /Mesajlar 4/ })).toBeVisible();
+    await expect(mobileMenu.getByRole("link", { name: /Taleplerim 1/ })).toBeVisible();
+    await expect(mobileMenu.getByRole("link", { name: /Favorilerim 2/ })).toBeVisible();
+    await expect(mobileMenu.getByRole("link", { name: /Yorumlarım 3/ })).toBeVisible();
+  }
+});
+
+test("customer message send renders the response and client navigation stays healthy", async ({ page, context }, testInfo) => {
+  const conversationId = `${mockUser.id}:${workshopId}`;
+  const messages: Array<{
+    id: string;
+    body: string;
+    sender: string;
+    createdAt: string;
+    readAt: string | null;
+  }> = [{
+    id: "message-1",
+    body: "Ustadan ilk mesaj",
+    sender: "WORKSHOP",
+    createdAt: "2026-11-03T10:00:00.000Z",
+    readAt: "2026-11-03T10:01:00.000Z",
+  }];
+  const runtimeErrors: string[] = [];
+  page.on("pageerror", (error) => runtimeErrors.push(error.message));
+  page.on("console", (message) => {
+    if (message.type() === "error") runtimeErrors.push(message.text());
+  });
+
+  await context.route("**/api/local/messages/unread-count", (route) =>
+    route.fulfill({ json: { success: true, data: { count: 0 } } }),
+  );
+  await context.route("**/api/local/work-requests/mine*", (route) =>
+    route.fulfill({ json: { success: true, data: [], meta: { page: 1, limit: 100, total: 0, totalPages: 0 } } }),
+  );
+  await context.route("**/api/local/reviews/mine*", (route) =>
+    route.fulfill({ json: { success: true, data: [], meta: { page: 1, limit: 1, total: 0, totalPages: 0 } } }),
+  );
+  await context.route("**/api/local/conversations?*", (route) =>
+    route.fulfill({ json: { success: true, data: [{
+      id: conversationId,
+      requestId: mockUser.id,
+      customerName: "Örnek Servis",
+      requestTitle: "Fren bakımı",
+      lastMessage: messages.at(-1)?.body ?? "",
+      lastMessageAt: messages.at(-1)?.createdAt ?? null,
+      unreadCount: 0,
+    }], meta: { page: 1, limit: 100, total: 1, totalPages: 1 } } }),
+  );
+  await context.route("**/api/local/conversations/**", async (route) => {
+    const path = decodeURIComponent(new URL(route.request().url()).pathname);
+    if (path.endsWith("/messages") && route.request().method() === "POST") {
+      const body = route.request().postDataJSON() as { body: string };
+      const sent = { id: "message-2", body: body.body, sender: "CUSTOMER", createdAt: "2026-11-03T10:02:00.000Z", readAt: null };
+      messages.push(sent);
+      return route.fulfill({ status: 201, json: { success: true, data: sent } });
+    }
+    if (path.endsWith("/messages")) {
+      return route.fulfill({ json: { success: true, data: messages, meta: { page: 1, limit: 100, total: messages.length, totalPages: 1 } } });
+    }
+    return route.fulfill({ json: { success: true, data: {
+      id: conversationId,
+      requestId: mockUser.id,
+      customerName: "Örnek Servis",
+      requestTitle: "Fren bakımı",
+      lastMessage: messages.at(-1)?.body ?? "",
+      lastMessageAt: messages.at(-1)?.createdAt ?? null,
+      unreadCount: 0,
+    } } });
+  });
+
+  await page.goto("/hesabim/mesajlar");
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: /Örnek Servis/ }).click();
+  }
+  await page.getByRole("textbox", { name: "Mesajınızı yazın" }).fill("Müşteri yanıtı");
+  await page.getByRole("button", { name: "Gönder" }).click();
+  await expect(page.getByText("Müşteri yanıtı", { exact: true }).last()).toBeVisible();
+  await page.getByRole("navigation", { name: "Hesap menüsü" }).getByRole("link", { name: "Favorilerim" }).click();
+  await expect(page).toHaveURL(/\/hesabim\/favoriler$/);
+  await page.getByRole("navigation", { name: "Hesap menüsü" }).getByRole("link", { name: "Mesajlar" }).click();
+  if (testInfo.project.name === "mobile") {
+    await page.getByRole("button", { name: /Örnek Servis/ }).click();
+  }
+  await expect(page.getByText("Müşteri yanıtı", { exact: true }).last()).toBeVisible();
+  expect(runtimeErrors).toEqual([]);
+});
+
 test("favorites resolve all saved workshop IDs and stay in sync after reload and removal", async ({ page, context }) => {
   await page.addInitScript(({ key, ids }) => {
     localStorage.setItem(key, JSON.stringify({ version: 1, ids }));
@@ -73,6 +203,9 @@ test("favorites resolve all saved workshop IDs and stay in sync after reload and
 
   await page.goto("/hesabim/favoriler");
   await expect(page.getByRole("link", { name: "Kayıtlı Usta" })).toBeVisible();
+  const banner = page.locator("main article img").first();
+  await expect(banner).toBeVisible();
+  await expect(banner).toHaveAttribute("src", new RegExp(`/api/local/workshops/${workshopId}/banner(?:\\?|$)`));
   await expect(page.getByRole("link", { name: "Profili incele" })).toHaveAttribute(
     "href",
     "/usta/deneme-ddbf0562",
@@ -110,7 +243,7 @@ test("review history follows pagination and shows moderation and business replie
   await context.route("**/api/local/reviews/mine*", (route) => {
     const url = new URL(route.request().url());
     const pageNumber = url.searchParams.get("page") ?? "1";
-    requestedPages.push(pageNumber);
+    if (url.searchParams.get("limit") === "100") requestedPages.push(pageNumber);
     const data = pageNumber === "1"
       ? [review("30000000-0000-4000-8000-000000000001", workshopId, "PUBLISHED")]
       : [review("30000000-0000-4000-8000-000000000002", secondWorkshopId, "PENDING")];
